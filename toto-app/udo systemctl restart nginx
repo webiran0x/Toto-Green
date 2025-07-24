@@ -1,0 +1,2781 @@
+-- Logs begin at Thu 2022-12-29 11:40:26 UTC, end at Mon 2025-07-21 14:56:28 UTC. --
+Dec 29 12:08:57 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1016.
+Dec 29 12:08:57 ubuntu-16gb-alph-game apachectl[2257]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:08:57 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1016.
+Dec 29 12:10:41 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1105.
+Dec 29 12:10:41 ubuntu-16gb-alph-game apachectl[13942]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:10:41 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:10:41 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1105 and the job result is done.
+Dec 29 12:10:41 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1105.
+Dec 29 12:10:41 ubuntu-16gb-alph-game apachectl[13948]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:10:41 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1105.
+Dec 29 12:37:38 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1542.
+Dec 29 12:37:39 ubuntu-16gb-alph-game apachectl[22811]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:37:39 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:37:39 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1542 and the job result is done.
+Dec 29 12:37:39 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1542.
+Dec 29 12:37:39 ubuntu-16gb-alph-game apachectl[22829]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:37:39 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1542.
+Dec 29 12:39:57 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1799.
+Dec 29 12:39:57 ubuntu-16gb-alph-game apachectl[30223]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:39:57 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:39:57 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1799 and the job result is done.
+Dec 29 12:39:57 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1799.
+Dec 29 12:39:57 ubuntu-16gb-alph-game apachectl[30229]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:39:57 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1799.
+Dec 29 12:39:58 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1884.
+Dec 29 12:39:58 ubuntu-16gb-alph-game apachectl[30318]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:39:58 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:39:58 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1884 and the job result is done.
+Dec 29 12:39:58 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1884.
+Dec 29 12:39:58 ubuntu-16gb-alph-game apachectl[30324]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:39:58 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1884.
+Dec 29 12:47:26 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1968.
+Dec 29 12:47:26 ubuntu-16gb-alph-game apachectl[30698]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:47:26 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:47:26 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1968 and the job result is done.
+Dec 29 12:47:26 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1968.
+Dec 29 12:47:26 ubuntu-16gb-alph-game apachectl[30711]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:47:26 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1968.
+Dec 29 12:48:34 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2052.
+Dec 29 12:48:34 ubuntu-16gb-alph-game apachectl[30739]: AH00112: Warning: DocumentRoot [/var/www/html/public] does not exist
+Dec 29 12:48:34 ubuntu-16gb-alph-game apachectl[30739]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:48:34 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:48:34 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2052 and the job result is done.
+Dec 29 12:48:34 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2052.
+Dec 29 12:48:34 ubuntu-16gb-alph-game apachectl[30748]: AH00112: Warning: DocumentRoot [/var/www/html/public] does not exist
+Dec 29 12:48:34 ubuntu-16gb-alph-game apachectl[30748]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:48:34 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2052.
+Dec 29 12:49:21 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2136.
+Dec 29 12:49:21 ubuntu-16gb-alph-game apachectl[30783]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:49:21 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:49:21 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2136 and the job result is done.
+Dec 29 12:49:21 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2136.
+Dec 29 12:49:21 ubuntu-16gb-alph-game apachectl[30794]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:49:21 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2136.
+Dec 29 12:50:28 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2220.
+Dec 29 12:50:28 ubuntu-16gb-alph-game apachectl[30826]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:50:29 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:50:29 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2220 and the job result is done.
+Dec 29 12:50:29 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2220.
+Dec 29 12:50:29 ubuntu-16gb-alph-game apachectl[30838]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:50:29 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2220.
+Dec 29 12:51:24 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2389.
+Dec 29 12:51:24 ubuntu-16gb-alph-game apachectl[31453]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:51:24 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 29 12:51:24 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2389 and the job result is done.
+Dec 29 12:51:24 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2389.
+Dec 29 12:51:24 ubuntu-16gb-alph-game apachectl[31466]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 29 12:51:24 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2389.
+Dec 30 16:43:48 ubuntu-16gb-alph-game systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 11251.
+Dec 30 16:43:48 ubuntu-16gb-alph-game apachectl[65152]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 30 16:43:48 ubuntu-16gb-alph-game systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Dec 30 16:43:48 ubuntu-16gb-alph-game systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 11251 and the job result is done.
+Dec 30 16:43:48 ubuntu-16gb-alph-game systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 11251.
+Dec 30 16:43:48 ubuntu-16gb-alph-game apachectl[65169]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 30 16:43:48 ubuntu-16gb-alph-game systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 11251.
+Dec 31 00:00:02 ubuntu-16gb-alph-game systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 14875.
+Dec 31 00:00:02 ubuntu-16gb-alph-game apachectl[76880]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Dec 31 00:00:02 ubuntu-16gb-alph-game systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 14875 and the job result is done.
+Jan 01 00:00:30 ubuntu-16gb-alph-game systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 21132.
+Jan 01 00:00:30 ubuntu-16gb-alph-game apachectl[109552]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 01 00:00:30 ubuntu-16gb-alph-game systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 21132 and the job result is done.
+Jan 02 00:00:09 ubuntu-16gb-alph-game systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 27212.
+Jan 02 00:00:10 ubuntu-16gb-alph-game apachectl[135746]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 02 00:00:10 ubuntu-16gb-alph-game systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 27212 and the job result is done.
+[0;1;39m-- Reboot --[0m
+Jan 02 16:44:52 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 156.
+Jan 02 16:44:52 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[690]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 02 16:44:52 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 156.
+[0;1;39m-- Reboot --[0m
+Jan 02 17:24:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 142.
+Jan 02 17:24:34 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[632]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 02 17:24:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 142.
+Jan 03 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3548.
+Jan 03 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[10140]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3548 and the job result is done.
+[0;1;39m-- Reboot --[0m
+Jan 03 11:17:17 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 143.
+Jan 03 11:17:18 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[694]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 11:17:18 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 143.
+[0;1;39m-- Reboot --[0m
+Jan 03 11:24:52 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 108.
+Jan 03 11:24:52 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[694]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 11:24:52 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 108.
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1151.
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[1718]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1151 and the job result is done.
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1151.
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[1738]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:06:39 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1151.
+Jan 03 12:10:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1403.
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[1943]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 1403 and the job result is done.
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 1403.
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[1951]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:10:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 1403.
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2012.
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3323]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2012 and the job result is done.
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2012.
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3340]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:33:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2012.
+Jan 03 12:34:36 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2096.
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3367]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2096 and the job result is done.
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2096.
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3385]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:34:37 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2096.
+Jan 03 12:42:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2352.
+Jan 03 12:42:11 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3757]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:42:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2352 and the job result is done.
+Jan 03 12:42:51 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2353.
+Jan 03 12:42:51 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3797]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:42:51 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2353 and the job result is done.
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2438.
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3880]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2438 and the job result is done.
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2438.
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3897]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:49:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2438.
+Jan 03 12:51:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2522.
+Jan 03 12:51:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3933]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:51:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 03 12:51:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 2522 and the job result is done.
+Jan 03 12:51:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 2522.
+Jan 03 12:51:47 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[3949]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 12:51:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 2522.
+Jan 03 14:37:55 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3826.
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6938]: AH00526: Syntax error on line 37 of /etc/apache2/sites-enabled/alpha.casino-le-ssl.conf:
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6938]: SSLCertificateFile: file '/etc/letsencrypt/live/alpha.casino/fullchain.pem' does not exist or is empty
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6935]: Action 'graceful' failed.
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6935]: The Apache error log may have more information.
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 03 14:37:56 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3826 and the job result is failed.
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3827.
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6949]: AH00526: Syntax error on line 37 of /etc/apache2/sites-enabled/alpha.casino-le-ssl.conf:
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6949]: SSLCertificateFile: file '/etc/letsencrypt/live/alpha.casino/fullchain.pem' does not exist or is empty
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6946]: Action 'graceful' failed.
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[6946]: The Apache error log may have more information.
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 03 14:38:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3827 and the job result is failed.
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3996.
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7324]: AH00526: Syntax error on line 37 of /etc/apache2/sites-enabled/000-default-le-ssl.conf:
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7324]: SSLCertificateFile: file '/etc/letsencrypt/live/alpha.casino/fullchain.pem' does not exist or is empty
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7321]: Action 'graceful' failed.
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7321]: The Apache error log may have more information.
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 03 14:52:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3996 and the job result is failed.
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3997.
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7367]: AH00526: Syntax error on line 37 of /etc/apache2/sites-enabled/000-default-le-ssl.conf:
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7367]: SSLCertificateFile: file '/etc/letsencrypt/live/alpha.casino/fullchain.pem' does not exist or is empty
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7364]: Action 'graceful' failed.
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7364]: The Apache error log may have more information.
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 03 14:54:33 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3997 and the job result is failed.
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3998.
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7378]: AH00526: Syntax error on line 37 of /etc/apache2/sites-enabled/000-default-le-ssl.conf:
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7378]: SSLCertificateFile: file '/etc/letsencrypt/live/alpha.casino/fullchain.pem' does not exist or is empty
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7375]: Action 'graceful' failed.
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7375]: The Apache error log may have more information.
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 03 14:54:44 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3998 and the job result is failed.
+Jan 03 14:56:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3999.
+Jan 03 14:56:13 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[7411]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 14:56:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3999 and the job result is done.
+[0;1;39m-- Reboot --[0m
+Jan 03 16:20:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 134.
+Jan 03 16:20:30 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[696]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 03 16:20:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 134.
+[0;1;39m-- Reboot --[0m
+Jan 04 07:31:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 127.
+Jan 04 07:31:12 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[695]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 04 07:31:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 127.
+Jan 04 07:31:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 614.
+Jan 04 07:31:13 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[844]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 04 07:31:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 614 and the job result is done.
+Jan 05 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 4748.
+Jan 05 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[9509]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 4748 and the job result is done.
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7559.
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17340]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7559 and the job result is done.
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7559.
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17361]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:18:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 7559.
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7643.
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17424]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7643 and the job result is done.
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7643.
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17443]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:20:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 7643.
+Jan 05 09:24:46 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7727.
+Jan 05 09:24:46 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17539]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:24:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jan 05 09:24:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7727 and the job result is done.
+Jan 05 09:24:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7727.
+Jan 05 09:24:47 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17555]: AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 127.0.1.1. Set the 'ServerName' directive globally to suppress this message
+Jan 05 09:24:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 7727.
+Jan 05 09:30:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7811.
+Jan 05 09:30:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7811 and the job result is done.
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7812.
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17775]: AH00526: Syntax error on line 1 of /etc/apache2/conf-enabled/alpha.casino.conf:
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17775]: Invalid command 'alpha.casino', perhaps misspelled or defined by a module not included in the server configuration
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17772]: Action 'graceful' failed.
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[17772]: The Apache error log may have more information.
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecReload= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jan 05 09:37:17 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mReload failed for The Apache HTTP Server.[0m
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7812 and the job result is failed.
+Jan 05 09:37:28 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7813.
+Jan 05 09:37:28 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7813 and the job result is done.
+Jan 05 09:44:49 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7898.
+Jan 05 09:44:49 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7898 and the job result is done.
+Jan 05 09:45:35 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7899.
+Jan 05 09:45:35 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7899 and the job result is done.
+Jan 06 00:00:06 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 14342.
+Jan 06 00:00:07 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 14342 and the job result is done.
+Jan 07 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 20148.
+Jan 07 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 20148 and the job result is done.
+Jan 08 00:00:09 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 25531.
+Jan 08 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 25531 and the job result is done.
+Jan 09 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 31338.
+Jan 09 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 31338 and the job result is done.
+Jan 10 00:00:07 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 36891.
+Jan 10 00:00:07 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 36891 and the job result is done.
+Jan 11 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 42443.
+Jan 11 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 42443 and the job result is done.
+Jan 12 00:00:09 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 48079.
+Jan 12 00:00:09 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 48079 and the job result is done.
+Jan 13 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 53294.
+Jan 13 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 53294 and the job result is done.
+Jan 14 00:00:27 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 59187.
+Jan 14 00:00:27 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 59187 and the job result is done.
+Jan 15 00:00:09 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 64570.
+Jan 15 00:00:09 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 64570 and the job result is done.
+Jan 16 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 70375.
+Jan 16 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 70375 and the job result is done.
+Jan 17 00:00:00 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 75674.
+Jan 17 00:00:00 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 75674 and the job result is done.
+Jan 18 00:00:04 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 81226.
+Jan 18 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 81226 and the job result is done.
+Jan 19 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 86863.
+Jan 19 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 86863 and the job result is done.
+Jan 20 00:00:04 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 92246.
+Jan 20 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 92246 and the job result is done.
+Jan 21 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 98051.
+Jan 21 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 98051 and the job result is done.
+Jan 22 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 103434.
+Jan 22 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 103434 and the job result is done.
+Jan 23 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 109943.
+Jan 23 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 109943 and the job result is done.
+Jan 24 00:00:22 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 116210.
+Jan 24 00:00:22 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 116210 and the job result is done.
+[0;1;39m-- Reboot --[0m
+Jan 24 18:28:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 161.
+Jan 24 18:28:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 161.
+Jan 25 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 3549.
+Jan 25 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 3549 and the job result is done.
+Jan 26 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 10946.
+Jan 26 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 10946 and the job result is done.
+Jan 27 00:00:00 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 17298.
+Jan 27 00:00:00 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 17298 and the job result is done.
+Jan 28 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 22934.
+Jan 28 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 22934 and the job result is done.
+Jan 29 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 28571.
+Jan 29 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 28571 and the job result is done.
+Jan 30 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 34206.
+Jan 30 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 34206 and the job result is done.
+Jan 30 22:43:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40399.
+Jan 30 22:43:06 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40399 and the job result is done.
+Jan 30 22:48:28 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40401.
+Jan 30 22:48:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40401 and the job result is done.
+Jan 30 22:48:40 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40487.
+Jan 30 22:48:40 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40487 and the job result is done.
+Jan 30 22:49:45 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40488.
+Jan 30 22:49:45 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40488 and the job result is done.
+Jan 30 22:50:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40489.
+Jan 30 22:50:47 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40489 and the job result is done.
+Jan 31 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 40826.
+Jan 31 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 40826 and the job result is done.
+Feb 01 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 46293.
+Feb 01 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 46293 and the job result is done.
+Feb 02 00:00:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 52013.
+Feb 02 00:00:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 52013 and the job result is done.
+Feb 03 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 57734.
+Feb 03 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 57734 and the job result is done.
+Feb 03 06:58:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 59924.
+Feb 03 06:58:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Feb 03 06:58:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 59924 and the job result is done.
+Feb 03 06:58:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 59924.
+Feb 03 06:58:34 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 59924.
+Feb 04 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 63880.
+Feb 04 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 63880 and the job result is done.
+Feb 05 00:00:02 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 69516.
+Feb 05 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 69516 and the job result is done.
+Feb 06 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 75235.
+Feb 06 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 75235 and the job result is done.
+Feb 07 00:00:18 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 80870.
+Feb 07 00:00:18 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 80870 and the job result is done.
+Feb 08 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 86675.
+Feb 08 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 86675 and the job result is done.
+Feb 09 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 92311.
+Feb 09 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 92311 and the job result is done.
+Feb 10 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 98204.
+Feb 10 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 98204 and the job result is done.
+Feb 11 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 103755.
+Feb 11 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 103755 and the job result is done.
+Feb 12 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 109560.
+Feb 12 00:00:12 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 109560 and the job result is done.
+Feb 13 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 115279.
+Feb 13 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 115279 and the job result is done.
+Feb 14 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 121252.
+Feb 14 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 121252 and the job result is done.
+Feb 15 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 126803.
+Feb 15 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 126803 and the job result is done.
+Feb 16 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 132354.
+Feb 16 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 132354 and the job result is done.
+Feb 17 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 138328.
+Feb 17 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 138328 and the job result is done.
+Feb 18 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 143795.
+Feb 18 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 143795 and the job result is done.
+Feb 19 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 150135.
+Feb 19 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 150135 and the job result is done.
+Feb 20 00:00:06 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 156107.
+Feb 20 00:00:07 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 156107 and the job result is done.
+[0;1;39m-- Reboot --[0m
+Jun 26 07:16:21 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 129.
+Jun 26 07:16:22 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 129.
+Jun 26 07:16:22 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 782.
+Jun 26 07:16:22 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 782 and the job result is done.
+Jun 27 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 6221.
+Jun 27 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 6221 and the job result is done.
+Jun 27 06:04:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7905.
+Jun 27 06:04:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jun 27 06:04:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 7905 and the job result is done.
+Jun 27 06:04:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 7905.
+Jun 27 06:04:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Started The Apache HTTP Server.
+-- Subject: A start job for unit apache2.service has finished successfully
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished successfully.
+-- 
+-- The job identifier is 7905.
+Jun 28 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 13256.
+Jun 28 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 13256 and the job result is done.
+Jun 29 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 19651.
+Jun 29 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 19651 and the job result is done.
+Jun 30 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 25455.
+Jun 30 00:00:30 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 25455 and the job result is done.
+Jul 01 00:00:15 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 31259.
+Jul 01 00:00:15 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 31259 and the job result is done.
+Jul 02 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 37232.
+Jul 02 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 37232 and the job result is done.
+Jul 03 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 43290.
+Jul 03 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 43290 and the job result is done.
+Jul 04 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 49094.
+Jul 04 00:00:02 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 49094 and the job result is done.
+Jul 05 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 55489.
+Jul 05 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 55489 and the job result is done.
+Jul 06 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 61125.
+Jul 06 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 61125 and the job result is done.
+Jul 07 00:00:08 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 67097.
+Jul 07 00:00:08 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 67097 and the job result is done.
+Jul 08 00:00:14 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 73492.
+Jul 08 00:00:14 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 73492 and the job result is done.
+Jul 09 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 79128.
+Jul 09 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 79128 and the job result is done.
+Jul 10 00:00:28 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 85017.
+Jul 10 00:00:29 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 85017 and the job result is done.
+Jul 11 00:00:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 91328.
+Jul 11 00:00:11 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 91328 and the job result is done.
+Jul 12 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 97470.
+Jul 12 00:00:13 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 97470 and the job result is done.
+Jul 13 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 103531.
+Jul 13 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 103531 and the job result is done.
+Jul 14 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 109082.
+Jul 14 00:00:03 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 109082 and the job result is done.
+Jul 15 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 115055.
+Jul 15 00:00:01 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 115055 and the job result is done.
+Jul 16 00:00:15 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 121627.
+Jul 16 00:00:15 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 121627 and the job result is done.
+Jul 17 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 127179.
+Jul 17 00:00:32 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 127179 and the job result is done.
+Jul 18 00:00:23 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 133152.
+Jul 18 00:00:23 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 133152 and the job result is done.
+Jul 19 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 139462.
+Jul 19 00:00:05 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 139462 and the job result is done.
+Jul 20 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 145435.
+Jul 20 00:00:10 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 145435 and the job result is done.
+Jul 21 00:00:25 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloading The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 151661.
+Jul 21 00:00:25 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Reloaded The Apache HTTP Server.
+-- Subject: A reload job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A reload job for unit apache2.service has finished.
+-- 
+-- The job identifier is 151661 and the job result is done.
+Jul 21 14:50:59 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopping The Apache HTTP Server...
+-- Subject: A stop job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 157918.
+Jul 21 14:50:59 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: apache2.service: Succeeded.
+-- Subject: Unit succeeded
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has successfully entered the 'dead' state.
+Jul 21 14:50:59 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Stopped The Apache HTTP Server.
+-- Subject: A stop job for unit apache2.service has finished
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A stop job for unit apache2.service has finished.
+-- 
+-- The job identifier is 157918 and the job result is done.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 157919.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748717]: (98)Address already in use: AH00072: make_sock: could not bind to address [::]:443
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748717]: (98)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:443
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748717]: no listening sockets available, shutting down
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748717]: AH00015: Unable to open logs
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748701]: Action 'start' failed.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748701]: The Apache error log may have more information.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecStart= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mapache2.service: Failed with result 'exit-code'.[0m
+-- Subject: Unit failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has entered the 'failed' state with result 'exit-code'.
+Jul 21 14:51:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start The Apache HTTP Server.[0m
+-- Subject: A start job for unit apache2.service has failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished with a failure.
+-- 
+-- The job identifier is 157919 and the job result is failed.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 158003.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748782]: (98)Address already in use: AH00072: make_sock: could not bind to address [::]:443
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748782]: (98)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:443
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748782]: no listening sockets available, shutting down
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748782]: AH00015: Unable to open logs
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748769]: Action 'start' failed.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[748769]: The Apache error log may have more information.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecStart= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mapache2.service: Failed with result 'exit-code'.[0m
+-- Subject: Unit failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has entered the 'failed' state with result 'exit-code'.
+Jul 21 14:51:50 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start The Apache HTTP Server.[0m
+-- Subject: A start job for unit apache2.service has failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished with a failure.
+-- 
+-- The job identifier is 158003 and the job result is failed.
+Jul 21 14:54:20 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 158171.
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749081]: (98)Address already in use: AH00072: make_sock: could not bind to address [::]:443
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749081]: (98)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:443
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749081]: no listening sockets available, shutting down
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749081]: AH00015: Unable to open logs
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749072]: Action 'start' failed.
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749072]: The Apache error log may have more information.
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecStart= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mapache2.service: Failed with result 'exit-code'.[0m
+-- Subject: Unit failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has entered the 'failed' state with result 'exit-code'.
+Jul 21 14:54:21 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start The Apache HTTP Server.[0m
+-- Subject: A start job for unit apache2.service has failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished with a failure.
+-- 
+-- The job identifier is 158171 and the job result is failed.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: Starting The Apache HTTP Server...
+-- Subject: A start job for unit apache2.service has begun execution
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has begun execution.
+-- 
+-- The job identifier is 158339.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749438]: (98)Address already in use: AH00072: make_sock: could not bind to address [::]:443
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749438]: (98)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:443
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749438]: no listening sockets available, shutting down
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749438]: AH00015: Unable to open logs
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749423]: Action 'start' failed.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 apachectl[749423]: The Apache error log may have more information.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;39m[0;1;31m[0;1;39mapache2.service: Control process exited, code=exited, status=1/FAILURE[0m
+-- Subject: Unit process exited
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- An ExecStart= process belonging to unit apache2.service has exited.
+-- 
+-- The process' exit code is 'exited' and its exit status is 1.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mapache2.service: Failed with result 'exit-code'.[0m
+-- Subject: Unit failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- The unit apache2.service has entered the 'failed' state with result 'exit-code'.
+Jul 21 14:55:38 snapshot-33754717-ubuntu-4gb-hel1-1 systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start The Apache HTTP Server.[0m
+-- Subject: A start job for unit apache2.service has failed
+-- Defined-By: systemd
+-- Support: http://www.ubuntu.com/support
+-- 
+-- A start job for unit apache2.service has finished with a failure.
+-- 
+-- The job identifier is 158339 and the job result is failed.
