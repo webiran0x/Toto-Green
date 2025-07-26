@@ -8,10 +8,12 @@ const Prediction = require('../models/Prediction');
 const Transaction = require('../models/Transaction'); // استفاده از مدل جامع Transaction
 const WithdrawalRequest = require('../models/WithdrawalRequest');
 const CryptoDeposit = require('../models/CryptoDeposit'); // برای پیگیری واریزهای کریپتو در حال انتظار
+const AdminSettings = require('../models/AdminSettings'); // اضافه شده برای حداقل/حداکثر برداشت
 const logger = require('../utils/logger');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // احتمالا برای مقایسه رمز عبور فعلی
 const axios = require('axios'); // برای فراخوانی API SHKeeper
 const mongoose = require('mongoose'); // برای تولید ObjectId جدید برای external_id
+const { updateUserProfileSchema, changePasswordSchema, requestWithdrawalSchema, depositSchema, submitPredictionSchema } = require('../validation/userValidation'); // اضافه شدن depositSchema و submitPredictionSchema
 // --- اضافه شد: ایمپورت تابع کمکی ---
 const { generateRandomString } = require('../utils/helpers'); // اطمینان حاصل کنید که این مسیر و تابع درست هستند
 // --- پایان بخش اضافه شد ---
@@ -48,91 +50,129 @@ const downloadUserGameData = asyncHandler(async (req, res) => {
 
 
 
-// @desc    دریافت پروفایل کاربر
+// @desc    Get user profile
 // @route   GET /api/users/profile
-// @access  Private (User)
-const getUserProfile = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user._id).select('-password');
-    if (user) {
-        res.json({
-            _id: user._id,
-            username: user.username,
-            email: user.email,
-            role: user.role,
-            balance: user.balance,
-            score: user.score,
-            accessLevel: user.accessLevel,
-            status: user.status,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
-            referrer: user.referrer // اگر نیاز باشد، اطلاعات معرف را populate کنید
-        });
-    } else {
-        res.status(404).json({ message: 'کاربر یافت نشد.' });
+// @access  Private
+const getUserProfile = async (req, res) => {
+    try {
+        // req.user از authMiddleware می‌آید
+        const user = await User.findById(req.user._id).select('-password'); // رمز عبور را انتخاب نکنید
+        if (user) {
+            res.status(200).json(user);
+        } else {
+            res.status(404).json({ message: 'کاربر یافت نشد.' });
+        }
+    } catch (error) {
+        logger.error(`Error fetching user profile for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
     }
-});
+};
 
-// @desc    به‌روزرسانی پروفایل کاربر
+// @desc    Update user profile
 // @route   PUT /api/users/profile
-// @access  Private (User)
-const updateUserProfile = asyncHandler(async (req, res) => {
-    const { username, email } = req.body; // اجازه تغییر رمز عبور از اینجا داده نمی‌شود
-
-    const user = await User.findById(req.user._id);
-
-    if (user) {
-        user.username = username || user.username;
-        user.email = email || user.email;
-
-        // می‌توانید اعتبارسنجی‌های بیشتری اضافه کنید (مثلاً بررسی تکراری نبودن ایمیل/نام کاربری)
-        const updatedUser = await user.save();
-
-        logger.info(`User ${req.user.username} (ID: ${req.user._id}) updated their profile.`);
-        res.json({
-            _id: updatedUser._id,
-            username: updatedUser.username,
-            email: updatedUser.email,
-            role: updatedUser.role,
-            balance: updatedUser.balance,
-            score: updatedUser.score,
-            accessLevel: updatedUser.accessLevel,
-            status: updatedUser.status,
-        });
-    } else {
-        res.status(404).json({ message: 'کاربر یافت نشد.' });
+// @access  Private
+const updateUserProfile = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = updateUserProfileSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error updating user profile for user ${req.user._id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
-});
 
-// @desc    تغییر رمز عبور کاربر
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            // بررسی عدم تکراری بودن نام کاربری یا ایمیل در صورت تغییر
+            if (req.body.username && req.body.username !== user.username) {
+                const usernameExists = await User.findOne({ username: req.body.username });
+                if (usernameExists) {
+                    return res.status(400).json({ message: 'نام کاربری از قبل وجود دارد.' });
+                }
+            }
+            if (req.body.email && req.body.email !== user.email) {
+                const emailExists = await User.findOne({ email: req.body.email });
+                if (emailExists) {
+                    return res.status(400).json({ message: 'ایمیل از قبل وجود دارد.' });
+                }
+            }
+
+            user.username = req.body.username || user.username;
+            user.email = req.body.email || user.email;
+            user.fullName = req.body.fullName || user.fullName; // اگر در مدل User.js وجود دارد
+            user.phoneNumber = req.body.phoneNumber || user.phoneNumber; // اگر در مدل User.js وجود دارد
+
+            const updatedUser = await user.save();
+
+            res.status(200).json({
+                _id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                fullName: updatedUser.fullName,
+                phoneNumber: updatedUser.phoneNumber,
+                // ... سایر فیلدهای مورد نیاز
+            });
+        } else {
+            res.status(404).json({ message: 'کاربر یافت نشد.' });
+        }
+    } catch (error) {
+        logger.error(`Server error updating user profile for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+// @desc    Change user password
 // @route   PUT /api/users/change-password
-// @access  Private (User)
-const changePassword = asyncHandler(async (req, res) => {
-    const { oldPassword, newPassword } = req.body;
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-        return res.status(404).json({ message: 'کاربر یافت نشد.' });
+// @access  Private
+const changeUserPassword = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = changePasswordSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error changing password for user ${req.user._id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
 
-    // بررسی رمز عبور قدیمی
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
-    if (!isMatch) {
-        return res.status(400).json({ message: 'رمز عبور فعلی اشتباه است.' });
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            if (!(await user.matchPassword(currentPassword))) {
+                logger.warn(`Password change failed for user ${user._id}: Invalid current password.`);
+                return res.status(401).json({ message: 'رمز عبور فعلی نامعتبر است.' });
+            }
+
+            user.password = newPassword; // Mongoose pre-save hook will hash this
+            await user.save();
+
+            logger.info(`User ${user._id} successfully changed password.`);
+            res.status(200).json({ message: 'رمز عبور با موفقیت تغییر یافت.' });
+        } else {
+            res.status(404).json({ message: 'کاربر یافت نشد.' });
+        }
+    } catch (error) {
+        logger.error(`Server error changing password for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
     }
+};
 
-    // هش کردن رمز عبور جدید و ذخیره
-    user.password = newPassword; // Pre-save hook در مدل User آن را هش می‌کند
-    await user.save();
-
-    logger.info(`User ${req.user.username} (ID: ${req.user._id}) changed their password.`);
-    res.json({ message: 'رمز عبور با موفقیت تغییر یافت.' });
-});
 
 
 // @desc    شارژ حساب کاربر (واریز)
 // @route   POST /api/users/deposit
 // @access  Private (User)
 const deposit = asyncHandler(async (req, res) => {
+  // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+  const { error } = depositSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+      const errors = error.details.map(err => err.message);
+      logger.warn(`Validation error for deposit request from user ${req.user._id}: ${errors.join(', ')}`);
+      return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+  }
+
   const { amount, method, cryptoCurrency, network } = req.body;
   const userId = req.user.id; // شناسه کاربر از توکن احراز هویت شده
 
@@ -145,11 +185,6 @@ const deposit = asyncHandler(async (req, res) => {
     // --- منطق برای واریزهای ارز دیجیتال (فاز شروع) ---
     console.log('Processing crypto deposit initiation...');
 
-    if (!cryptoCurrency || !network) {
-      res.status(400);
-      throw new Error('Crypto currency and network are required for crypto deposits.');
-    }
-
     // SHKeeper API انتظار نام ارز/شبکه خاصی را دارد (مثلاً "ETH-USDT" یا "BNB-USDT")
     let shkeeperCryptoName;
     if (cryptoCurrency === 'USDT') {
@@ -157,16 +192,18 @@ const deposit = asyncHandler(async (req, res) => {
         else if (network === 'BEP20') shkeeperCryptoName = 'BNB-USDT'; // SHKeeper از BNB-USDT برای BEP20 USDT استفاده می‌کند
         else if (network === 'ERC20') shkeeperCryptoName = 'ETH-USDT'; // SHKeeper از ETH-USDT برای ERC20 USDT استفاده می‌کند
         else {
-            res.status(400);
-            throw new Error('Unsupported USDT network for SHKeeper.');
+            // این خطا هرگز نباید رخ دهد اگر Joi validation درست باشد
+            logger.error(`Unsupported USDT network detected after Joi validation for user ${userId}: ${network}`);
+            return res.status(400).json({ message: 'شبکه USDT پشتیبانی نشده است.' });
         }
     } else if (cryptoCurrency === 'BTC') {
         shkeeperCryptoName = 'BTC'; // اگر بیت کوین باشد
     }
     // می‌توانید ارزهای دیگر را اینجا اضافه کنید
     else {
-        res.status(400);
-        throw new Error('Unsupported cryptocurrency for SHKeeper.');
+        // این خطا هرگز نباید رخ دهد اگر Joi validation درست باشد
+        logger.error(`Unsupported cryptocurrency detected after Joi validation for user ${userId}: ${cryptoCurrency}`);
+        return res.status(400).json({ message: 'ارز دیجیتال پشتیبانی نشده است.' });
     }
 
     // ابتدا، رکورد CryptoDeposit را ایجاد کنید تا شناسه آن به عنوان external_id به SHKeeper ارسال شود
@@ -275,18 +312,19 @@ const deposit = asyncHandler(async (req, res) => {
 // @route   POST /api/users/predict
 // @access  Private
 const submitPrediction = asyncHandler(async (req, res) => {
-    const { totoGameId, predictions: userPredictions } = req.body;
-    console.log(userPredictions);
-     // userPredictions: [{ matchId, chosenOutcome }]
-    const userId = req.user.id; // شناسه کاربر از توکن احراز هویت شده
-
-    // اعتبارسنجی اولیه ورودی‌ها
-    if (!userPredictions || !Array.isArray(userPredictions) || userPredictions.length === 0) {
-        return res.status(400).json({ message: 'لطفاً پیش‌بینی‌های معتبری را ارسال کنید.' });
+    // ... (بخش اعتبارسنجی Joi و خواندن متغیرها تغییری نمی‌کند)
+    const { error } = submitPredictionSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error submitting prediction for user ${req.user._id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
 
+    const { gameId, predictions: userPredictions, formAmount } = req.body;
+    const userId = req.user.id;
+
     try {
-        const totoGame = await TotoGame.findById(totoGameId);
+        const totoGame = await TotoGame.findById(gameId);
         if (!totoGame) {
             return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
         }
@@ -295,78 +333,66 @@ const submitPrediction = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: 'مهلت ثبت پیش‌بینی برای این بازی به پایان رسیده است.' });
         }
 
-        if (userPredictions.length !== totoGame.matches.length) {
-            return res.status(400).json({ message: `پیش‌بینی باید شامل دقیقاً ${totoGame.matches.length} بازی باشد.` });
-        }
-
-        let totalCombinations = 1;
-        const validPredictions = [];
-
         for (const userPred of userPredictions) {
-            const { matchId, chosenOutcome } = userPred;
+            const { matchId } = userPred;
             const matchInGame = totoGame.matches.find(m => m._id.toString() === matchId);
-
             if (!matchInGame) {
                 return res.status(400).json({ message: `بازی با شناسه ${matchId} در این مسابقه Toto یافت نشد.` });
             }
+        }
 
-            if (!Array.isArray(chosenOutcome) || chosenOutcome.length === 0 || !chosenOutcome.every(o => ['1', 'X', '2'].includes(o))) {
-                return res.status(400).json({ message: `نتیجه انتخاب شده برای بازی ${matchId} نامعتبر است.` });
-            }
-
-            totalCombinations *= chosenOutcome.length;
-
-            // --- اضافه شد: لاگ برای بررسی chosenOutcome قبل از push ---
-            console.log(`Debug: chosenOutcome before push to validPredictions:`, chosenOutcome);
-            console.log(`Debug: Type of chosenOutcome before push:`, typeof chosenOutcome);
-            console.log(`Debug: Is chosenOutcome an Array before push:`, Array.isArray(chosenOutcome));
-            // --- پایان لاگ اضافه شده ---
-
-            validPredictions.push({ matchId: matchInGame._id, chosenOutcome });
+        let totalCombinations = 1;
+        for (const userPred of userPredictions) {
+            totalCombinations *= userPred.chosenOutcome.length;
         }
 
         const FORM_BASE_COST = 1;
         const finalFormPrice = totalCombinations * FORM_BASE_COST;
+
+        if (formAmount !== finalFormPrice) {
+            logger.warn(`User ${userId} submitted prediction with incorrect formAmount. Expected: ${finalFormPrice}, Received: ${formAmount}`);
+            return res.status(400).json({ message: `مبلغ فرم نامعتبر است. مبلغ صحیح: ${finalFormPrice} USDT.` });
+        }
 
         const user = await User.findById(req.user._id);
         if (user.balance < finalFormPrice) {
             return res.status(400).json({ message: `موجودی شما کافی نیست. ${finalFormPrice.toLocaleString('fa-IR')} USDT مورد نیاز است.` });
         }
 
-        // const existingPrediction = await Prediction.findOne({ user: userId, totoGame: totoGameId });
+        // const existingPrediction = await Prediction.findOne({ user: userId, totoGame: gameId });
         // if (existingPrediction) {
         //     return res.status(400).json({ message: 'شما قبلاً برای این بازی پیش‌بینی ثبت کرده‌اید.' });
         // }
-        
-        // --- اضافه شد: تولید formId منحصر به فرد ---
+
         let formId;
         let isUnique = false;
         while (!isUnique) {
-            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-            const randomPart = generateRandomString(6); // 6 کاراکتر تصادفی
+            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomPart = generateRandomString(6);
             formId = `FORM-${datePart}-${randomPart}`;
             const existingFormId = await Prediction.findOne({ formId });
             if (!existingFormId) {
                 isUnique = true;
             }
         }
-        // --- پایان بخش اضافه شد ---
-
 
         user.balance -= finalFormPrice;
         await user.save();
 
         const newPrediction = new Prediction({
             user: req.user._id,
-            totoGame: totoGameId,
-            predictions: validPredictions,
+            totoGame: gameId,
+            predictions: userPredictions.map(p => ({
+                matchId: p.matchId, // <--- **اینجا را از `match` به `matchId` تغییر دهید**
+                chosenOutcome: p.chosenOutcome
+            })),
             price: finalFormPrice,
-            formId // --- اضافه شد: اختصاص formId به پیش‌بینی ---
+            formId
         });
 
         await newPrediction.save();
 
-        totoGame.totalPot += finalFormPrice; // مبلغ فرم به totalPot اضافه می‌شود
+        totoGame.totalPot = (totoGame.totalPot || 0) + finalFormPrice;
         await totoGame.save();
 
         await Transaction.create({
@@ -380,13 +406,12 @@ const submitPrediction = asyncHandler(async (req, res) => {
             status: 'completed'
         });
 
-        // بررسی و اعطای کمیسیون ارجاع (اگر این اولین فرم کاربر است)
         const userPredictionsCount = await Prediction.countDocuments({ user: req.user._id });
-        if (userPredictionsCount === 1) { // اگر این اولین پیش‌بینی کاربر است
-            await awardReferralCommission(req.user._id, finalFormPrice);
+        if (userPredictionsCount === 1 && user.referrer) {
+            logger.info(`Referral commission for user ${req.user._id} to be awarded for game ${gameId}.`);
         }
 
-        logger.info(`User ${req.user.username} (ID: ${req.user._id}) submitted prediction for Toto Game ${totoGame.name} (ID: ${totoGameId}) with Form ID: ${formId}.`);
+        logger.info(`User ${req.user.username} (ID: ${req.user._id}) submitted prediction for Toto Game ${totoGame.name} (ID: ${gameId}) with Form ID: ${formId}.`);
 
         res.status(201).json({
             message: 'پیش‌بینی شما با موفقیت ثبت شد.',
@@ -412,83 +437,69 @@ const submitPrediction = asyncHandler(async (req, res) => {
 });
 
 
-
-// @desc    درخواست برداشت وجه توسط کاربر
+// @desc    Request a withdrawal
 // @route   POST /api/users/withdraw
 // @access  Private
-const withdrawFunds = asyncHandler(async (req, res) => {
-  const { amount, walletAddress, network } = req.body;
-
-  if (typeof amount !== 'number' || amount <= 0) {
-    return res.status(400).json({ message: 'مبلغ برداشتی نامعتبر است.' });
-  }
-  if (!walletAddress || walletAddress.trim() === '') {
-    return res.status(400).json({ message: 'آدرس کیف پول مقصد الزامی است.' });
-  }
-  if (!network || network.trim() === '') {
-    return res.status(400).json({ message: 'شبکه کیف پول الزامی است.' });
-  }
-
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      logger.error(`User ${req.user._id} not found during withdrawal attempt.`);
-      return res.status(404).json({ message: 'کاربر یافت نشد.' });
+const requestWithdrawal = async (req, res) => {
+    // ... (بخش اعتبار سنجی Joi تغییری نمی‌کند)
+    const { error } = requestWithdrawalSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error for withdrawal request from user ${req.user._id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
 
-    // TODO: از تنظیمات ادمین برای حداقل مبلغ برداشت استفاده کنید
-    // const adminSettings = await AdminSettings.findOne({});
-    // if (amount < adminSettings.minWithdrawal) {
-    //   return res.status(400).json({ message: `حداقل مبلغ برداشت ${adminSettings.minWithdrawal} USDT است.` });
-    // }
+    const { amount, currency, network, walletAddress } = req.body;
 
-    if (user.balance < amount) {
-      logger.warn(`User ${user.username} has insufficient balance (${user.balance}) for withdrawal amount ${amount}.`);
-      return res.status(400).json({ message: 'موجودی حساب شما کافی نیست.' });
-    }
+    try {
+        const user = await User.findById(req.user._id);
+        const adminSettings = await AdminSettings.findOne();
 
-    // ایجاد یک درخواست برداشت (WithdrawalRequest)
-    const newRequest = new WithdrawalRequest({
-      user: req.user._id,
-      amount,
-      walletAddress,
-      network,
-      status: 'pending'
-    });
-
-    logger.info('Saving withdrawal request...');
-    await newRequest.save();
-    logger.info('Withdrawal request saved successfully.');
-
-    // کسر مبلغ از موجودی کاربر بلافاصله پس از ثبت درخواست
-    user.balance -= amount;
-    await user.save();
-
-    // ایجاد یک تراکنش با نوع 'withdrawal' و وضعیت 'pending'
-    await Transaction.create({
-        user: req.user._id,
-        amount: -amount, // مبلغ منفی برای برداشت
-        type: 'withdrawal',
-        method: 'crypto', // فرض بر این است که همه برداشت‌ها کریپتو هستند
-        status: 'pending', // وضعیت pending تا زمان تایید/رد ادمین و انجام Payout
-        description: `درخواست برداشت ${amount} USDT به آدرس ${walletAddress} (${network})`,
-        relatedEntity: newRequest._id,
-        relatedEntityType: 'WithdrawalRequest',
-        cryptoDetails: { // جزئیات اولیه برای نمایش در تراکنش‌ها
-            cryptoCurrency: `USDT-${network}`,
-            walletAddress: walletAddress,
-            // txHash و shkeeperTaskId بعداً توسط ادمین در صورت تایید و Payout اضافه می‌شوند
+        if (!user) {
+            return res.status(404).json({ message: 'کاربر یافت نشد.' });
         }
-    });
 
+        if (adminSettings && amount < adminSettings.minWithdrawal) {
+            logger.warn(`Withdrawal request from user ${user._id} for ${amount} failed: Below minimum withdrawal limit (${adminSettings.minWithdrawal}).`);
+            return res.status(400).json({ message: `مبلغ برداشت باید حداقل ${adminSettings.minWithdrawal} باشد.` });
+        }
 
-    logger.info(`User ${user.username} (ID: ${user._id}) created withdrawal request of ${amount} USDT. Balance deducted.`);
-    res.status(202).json({ message: 'درخواست برداشت شما با موفقیت ثبت شد و در انتظار تأیید ادمین است.', withdrawalRequest: newRequest, newBalance: user.balance });
-  } catch (error) {
-    logger.error(`Error creating withdrawal request for user ID ${req.user._id}: ${error.message}`);
-    res.status(500).json({ message: 'خطا در ثبت درخواست برداشت وجه.' });
-  }
-});
+        if (user.balance < amount) {
+            logger.warn(`Withdrawal request from user ${user._id} for ${amount} failed: Insufficient balance (${user.balance}).`);
+            return res.status(400).json({ message: 'موجودی کافی نیست.' });
+        }
+
+        const withdrawal = await WithdrawalRequest.create({
+            user: user._id,
+            amount,
+            currency,
+            network,
+            walletAddress,
+            status: 'pending'
+        });
+
+        user.balance -= amount;
+        await user.save();
+
+        // ثبت تراکنش برداشت
+        await Transaction.create({
+            user: user._id,
+            amount: -amount,
+            type: 'withdrawal', // <--- این خط باید 'withdrawal' باشد، نه 'withdrawal_request'
+            status: 'pending',
+            description: `درخواست برداشت ${amount} ${currency} به آدرس ${walletAddress}`, // <--- این خط (فیلد description) باید اضافه شود
+            relatedEntity: withdrawal._id,
+            relatedEntityType: 'WithdrawalRequest'
+        });
+
+        logger.info(`Withdrawal request created for user ${user._id}: Amount ${amount} ${currency} to ${walletAddress}.`);
+        res.status(201).json({ message: 'درخواست برداشت با موفقیت ثبت شد و در انتظار تایید است.' });
+
+    } catch (error) {
+        logger.error(`Server error during withdrawal request for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
 
 
 // @desc    دریافت تمام پیش‌بینی‌های ثبت شده توسط کاربر فعلی
@@ -496,30 +507,103 @@ const withdrawFunds = asyncHandler(async (req, res) => {
 // @access  Private (User)
 const getMyPredictions = asyncHandler(async (req, res) => {
     try {
-        const predictions = await Prediction.find({ user: req.user.id })
+        const userId = req.user.id;
+        
+        // پارامترهای صفحه‌بندی
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // پارامترهای فیلتر
+        let query = { user: userId }; // همیشه بر اساس کاربر فعلی فیلتر می‌شود
+
+        if (req.query.gameStatus) {
+            // فیلتر بر اساس وضعیت بازی Toto
+            // باید مطمئن شوید که TotoGame مدل را populate می‌کنید و سپس فیلتر می‌کنید
+            // یا ابتدا TotoGame ها را فیلتر کرده و سپس Prediction ها را بر اساس gameId فیلتر کنید.
+            // روش کارآمدتر: ابتدا gameIds مربوط به وضعیت مورد نظر را پیدا کنید.
+            const totoGamesWithStatus = await TotoGame.find({ status: req.query.gameStatus }).select('_id');
+            const gameIds = totoGamesWithStatus.map(game => game._id);
+            query.totoGame = { $in: gameIds };
+        }
+
+        const predictions = await Prediction.find(query)
             .populate('totoGame', 'name deadline status matches prizes winners') // prizes و winners اضافه شد
-            .sort({ createdAt: -1 });
-        logger.info(`User ${req.user.username} (ID: ${req.user.id}) fetched their predictions.`);
-        res.json(predictions);
+            .sort({ createdAt: -1 }) // جدیدترین پیش‌بینی‌ها اول
+            .skip(skip)
+            .limit(limit);
+
+        const totalCount = await Prediction.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.json({
+            predictions,
+            totalCount,
+            totalPages,
+            currentPage: page
+        });
     } catch (error) {
-        logger.error(`Error fetching predictions for user ${req.user.id}:`, error);
-        res.status(500).json({ message: 'خطا در دریافت پیش‌بینی‌های شما.' });
+        logger.error(`Error fetching predictions for user ${req.user.id}: ${error.message}`);
+        res.status(500).json({ message: 'خطا در دریافت پیش‌بینی‌های شما.', error: error.message });
     }
 });
-
 
 // @desc    دریافت تمام تراکنش‌های یک کاربر
 // @route   GET /api/users/my-transactions
 // @access  Private
 const getMyTransactions = asyncHandler(async (req, res) => {
     try {
-        const transactions = await Transaction.find({ user: req.user._id })
-            .sort({ createdAt: -1 }); // جدیدترین تراکنش‌ها اول
-        res.json(transactions);
+        const userId = req.user._id;
+        
+        // پارامترهای صفحه‌بندی
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        // پارامترهای فیلتر
+        let query = { user: userId }; // همیشه بر اساس کاربر فعلی فیلتر می‌شود
+
+        if (req.query.type) {
+            query.type = req.query.type;
+        }
+        if (req.query.status) {
+            query.status = req.query.status;
+        }
+        // می‌توانید فیلترهای بیشتری مانند method, minAmount, maxAmount, startDate, endDate را اینجا اضافه کنید
+        // مثال:
+        // if (req.query.method) {
+        //     query.method = req.query.method;
+        // }
+        // if (req.query.minAmount || req.query.maxAmount) {
+        //     query.amount = {};
+        //     if (req.query.minAmount) query.amount.$gte = parseFloat(req.query.minAmount);
+        //     if (req.query.maxAmount) query.amount.$lte = parseFloat(req.query.maxAmount);
+        // }
+        // if (req.query.startDate || req.query.endDate) {
+        //     query.createdAt = {};
+        //     if (req.query.startDate) query.createdAt.$gte = new Date(req.query.startDate);
+        //     if (req.query.endDate) query.createdAt.$lte = new Date(req.query.endDate);
+        // }
+
+
+        const transactions = await Transaction.find(query)
+            .sort({ createdAt: -1 }) // جدیدترین تراکنش‌ها اول
+            .skip(skip)
+            .limit(limit);
+
+        const totalCount = await Transaction.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.json({
+            transactions,
+            totalCount,
+            totalPages,
+            currentPage: page
+        });
     }
     catch (error) {
-        logger.error('Error fetching user transactions:', error);
-        res.status(500).json({ message: 'خطا در دریافت تراکنش‌های شما.' });
+        logger.error(`Error fetching user transactions for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطا در دریافت تراکنش‌های شما.', error: error.message });
     }
 });
 
@@ -626,23 +710,59 @@ const getSingleCryptoDeposit = asyncHandler(async (req, res) => {
 });
 
 // @desc    دریافت بازی‌های منقضی شده (deadline گذشته ولی هنوز وضعیتشان open است)
-// @route   GET /api/users/expired-games
+// @route   GET /api/users/games/expired
 // @access  Private (User)
 const getExpiredGames = asyncHandler(async (req, res) => {
     try {
-        const now = new Date();
+        const userId = req.user._id; 
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 6; 
+        const skip = (page - 1) * limit;
 
-        // بازی‌هایی که هنوز open هستند ولی زمان پایان آنها گذشته
-        const expiredGames = await TotoGame.find({
-            status: 'open',
-            deadline: { $lt: now }
+        let query = {
+            status: { $in: ['closed', 'completed', 'cancelled'] }
+        };
+
+        const games = await TotoGame.find(query)
+            .sort({ deadline: -1 }) 
+            .skip(skip)
+            .limit(limit)
+            .lean(); // اضافه شدن .lean() برای کارایی بهتر در عملیات بعدی
+
+        // --- جدید: واکشی تعداد پیش‌بینی‌ها برای هر بازی ---
+        const gameIds = games.map(game => game._id);
+        const predictionCounts = await Prediction.aggregate([
+            { $match: { totoGame: { $in: gameIds } } },
+            { $group: { _id: '$totoGame', count: { $sum: 1 } } }
+        ]);
+
+        // تبدیل نتایج به یک Map برای دسترسی آسان
+        const predictionCountMap = new Map();
+        predictionCounts.forEach(item => {
+            predictionCountMap.set(item._id.toString(), item.count);
         });
 
-        res.json(expiredGames);
+        // افزودن تعداد پیش‌بینی‌ها به هر شیء بازی
+        const gamesWithPredictionCounts = games.map(game => ({
+            ...game,
+            submittedFormsCount: predictionCountMap.get(game._id.toString()) || 0 // اگر پیش‌بینی‌ای نبود، صفر باشد
+        }));
+        // --- پایان جدید ---
+
+        const totalCount = await TotoGame.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.json({
+            games: gamesWithPredictionCounts, // ارسال بازی‌های به‌روز شده
+            totalCount,
+            totalPages,
+            currentPage: page
+        });
 
     } catch (error) {
-        logger.error('Error fetching expired games:', error);
-        res.status(500).json({ message: 'خطا در دریافت بازی‌های منقضی شده.' });
+        logger.error(`Error fetching expired games for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطا در دریافت مسابقات پایان‌یافته.', error: error.message });
     }
 });
 
@@ -652,14 +772,16 @@ console.log('USERCONTROLLER.JS: Exporting functions. Type of deposit:', typeof d
 module.exports = {
     getUserProfile,
     updateUserProfile,
-    changePassword,
+    changeUserPassword,
     submitPrediction,
     getMyPredictions,
     deposit,
     getMyTransactions,
-    withdrawFunds,
+    requestWithdrawal,
     claimPrize,
     getSingleCryptoDeposit,
-    getExpiredGames
+    getExpiredGames,
+    downloadUserGameData
+
 };
 console.log('USERCONTROLLER.JS: Finished userController loading.');

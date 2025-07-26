@@ -6,118 +6,196 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const { awardReferralCommission } = require('../services/totoService'); // اطمینان حاصل کنید که این تابع در totoService.js وجود دارد
 const logger = require('../utils/logger');
+const { submitPredictionSchema } = require('../validation/userValidation'); // استفاده از schema از userValidation
+const ExcelJS = require('exceljs'); // <--- مطمئن شوید این ایمپورت وجود دارد. اگر نیست، npm install exceljs را اجرا کنید.
 // --- اضافه شد: ایمپورت تابع کمکی ---
 const { generateRandomString } = require('../utils/helpers'); // اطمینان حاصل کنید که این مسیر و تابع درست هستند
 // --- پایان بخش اضافه شد ---
+
+
+// @desc    Submit predictions for a Toto game
+// @route   POST /api/user-games/predictions
+// @access  Private
+const submitPrediction = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = submitPredictionSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error submitting prediction for user ${req.user._id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    const { gameId, predictions, formAmount } = req.body;
+
+    try {
+        const game = await TotoGame.findById(gameId);
+        const user = await User.findById(req.user._id);
+
+        if (!game || !user) {
+            return res.status(404).json({ message: 'بازی یا کاربر یافت نشد.' });
+        }
+
+        if (game.status !== 'open') {
+            return res.status(400).json({ message: 'این بازی برای ثبت پیش‌بینی باز نیست.' });
+        }
+
+        if (new Date() > game.deadline) {
+            game.status = 'closed'; // بسته شدن بازی در صورت رد شدن مهلت
+            await game.save();
+            return res.status(400).json({ message: 'مهلت ثبت پیش‌بینی برای این بازی به پایان رسیده است.' });
+        }
+
+        if (user.balance < formAmount) {
+            logger.warn(`Prediction submission failed for user ${user._id}: Insufficient balance (${user.balance} < ${formAmount}).`);
+            return res.status(400).json({ message: 'موجودی کافی برای پرداخت فرم را ندارید.' });
+        }
+
+        // Check if user already submitted a prediction for this game (optional, depending on rules)
+        const existingPrediction = await Prediction.findOne({ user: user._id, totoGame: game._id });
+        if (existingPrediction) {
+            return res.status(400).json({ message: 'شما قبلاً برای این بازی پیش‌بینی ثبت کرده‌اید.' });
+        }
+
+        // کسر مبلغ فرم از موجودی کاربر
+        user.balance -= formAmount;
+        await user.save();
+
+        // ایجاد سند پیش‌بینی جدید
+        const prediction = await Prediction.create({
+            user: user._id,
+            totoGame: game._id,
+            predictions: predictions.map(p => ({
+                match: p.matchId,
+                predictedWinner: p.predictedWinner
+            })),
+            formAmount,
+            score: 0, // امتیاز اولیه صفر است
+            status: 'pending_result' // تا زمان اعلام نتایج
+        });
+
+        // ثبت تراکنش مربوط به پرداخت فرم
+        await Transaction.create({
+            user: user._id,
+            amount: -formAmount,
+            type: 'game_prediction',
+            status: 'completed',
+            relatedEntity: prediction._id,
+            relatedEntityType: 'Prediction'
+        });
+
+        // افزایش مجموع جوایز بازی
+        game.totalPrizePool = (game.totalPrizePool || 0) + formAmount;
+        await game.save();
+
+
+        logger.info(`User ${user._id} submitted prediction for game ${gameId} with amount ${formAmount}.`);
+        res.status(201).json({ message: 'پیش‌بینی شما با موفقیت ثبت شد!', prediction });
+
+    } catch (error) {
+        logger.error(`Server error submitting prediction for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
 
 
 // @desc    ثبت فرم پیش‌بینی در یک بازی Toto
 // @route   POST /api/totos/predict
 // @access  Private
 exports.createPrediction = asyncHandler(async (req, res, next) => {
-    const { totoGameId, predictions, price } = req.body;
-    const userId = req.user.id; // از middleware احراز هویت می‌آید
-
-    // اعتبارسنجی اولیه ورودی‌ها
-    if (!totoGameId || !predictions || !Array.isArray(predictions) || predictions.length !== 15 || !price || price <= 0) {
-        return res.status(400).json({ message: 'لطفاً تمام فیلدهای الزامی را پر کنید و دقیقاً ۱۵ پیش‌بینی معتبر ارائه دهید.' });
+    // اعتبارسنجی با Joi
+    const { error } = submitPredictionSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error for user ${req.user.id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبارسنجی', errors });
     }
 
+    const { gameId, predictions, formAmount } = req.body;
+    const userId = req.user.id;
+
     try {
-        const totoGame = await TotoGame.findById(totoGameId);
+        const game = await TotoGame.findById(gameId);
+        if (!game) return res.status(404).json({ message: 'بازی یافت نشد.' });
 
-        if (!totoGame) {
-            return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
-        }
-
-        if (totoGame.status !== 'open') {
-            return res.status(400).json({ message: 'مهلت ثبت فرم برای این بازی به پایان رسیده است یا بازی بسته شده است.' });
-        }
-
-        const now = new Date();
-        if (now > totoGame.deadline) {
-            // بازی باید توسط cron job بسته شده باشد، اما اگر هنوز باز است، از ثبت پیش‌بینی جلوگیری کنید.
-            totoGame.status = 'closed'; // وضعیت را در اینجا هم به‌روزرسانی کنید
-            await totoGame.save();
-            return res.status(400).json({ message: 'مهلت ثبت فرم برای این بازی به پایان رسیده است.' });
+        if (game.status !== 'open' || new Date() > game.deadline) {
+            game.status = 'closed';
+            await game.save();
+            return res.status(400).json({ message: 'مهلت ثبت فرم به پایان رسیده است.' });
         }
 
         const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ message: 'کاربر یافت نشد.' });
-        }
+        if (!user) return res.status(404).json({ message: 'کاربر یافت نشد.' });
 
-        if (user.balance < price) {
+        if (user.balance < formAmount) {
+            logger.warn(`User ${userId} has insufficient balance (${user.balance} < ${formAmount})`);
             return res.status(400).json({ message: 'موجودی کافی نیست.' });
         }
 
-        // // بررسی اینکه کاربر قبلاً برای این بازی پیش‌بینی ثبت کرده است یا خیر
-        // const existingPrediction = await Prediction.findOne({ user: userId, totoGame: totoGameId });
-        // if (existingPrediction) {
-        //     return res.status(400).json({ message: 'شما قبلاً برای این بازی پیش‌بینی ثبت کرده‌اید.' });
-        // }
+        const existingPrediction = await Prediction.findOne({ user: userId, totoGame: gameId });
+        if (existingPrediction) {
+            return res.status(400).json({ message: 'شما قبلاً برای این بازی پیش‌بینی ثبت کرده‌اید.' });
+        }
 
-        // --- اضافه شد: تولید formId منحصر به فرد ---
+        // تولید formId یکتا
         let formId;
         let isUnique = false;
         while (!isUnique) {
-            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-            const randomPart = generateRandomString(6); // 6 کاراکتر تصادفی
+            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const randomPart = generateRandomString(6);
             formId = `FORM-${datePart}-${randomPart}`;
-            // بررسی کنید که آیا formId قبلاً در دیتابیس وجود دارد
-            const existingFormId = await Prediction.findOne({ formId });
-            if (!existingFormId) {
-                isUnique = true;
-            }
+            const exists = await Prediction.findOne({ formId });
+            if (!exists) isUnique = true;
         }
-        // --- پایان بخش اضافه شد ---
 
-        // کسر مبلغ فرم از موجودی کاربر
-        user.balance -= price;
+        // کسر موجودی و ذخیره
+        user.balance -= formAmount;
         await user.save();
 
-        // ایجاد سند پیش‌بینی جدید
-        const prediction = new Prediction({
+        // ایجاد پیش‌بینی
+        const prediction = await Prediction.create({
             user: userId,
-            totoGame: totoGameId,
-            predictions,
-            price,
-            formId // --- اضافه شد: اختصاص formId به پیش‌بینی ---
+            totoGame: gameId,
+            predictions: predictions.map(p => ({
+                match: p.matchId,
+                predictedWinner: p.predictedWinner
+            })),
+            formAmount,
+            score: 0,
+            status: 'pending_result',
+            formId
         });
 
-        await prediction.save();
+        // افزایش totalPrizePool
+        game.totalPrizePool = (game.totalPrizePool || 0) + formAmount;
+        await game.save();
 
-        // افزایش totalPot بازی
-        totoGame.totalPot += price; // مبلغ فرم به totalPot اضافه می‌شود
-        await totoGame.save();
-
-
-        // ثبت تراکنش
+        // ثبت تراکنش فرم
         await Transaction.create({
             user: userId,
-            amount: -price, // منفی برای نشان دادن کسر از موجودی
+            amount: -formAmount,
             type: 'prediction_fee',
-            description: `پرداخت هزینه فرم پیش‌بینی برای بازی: ${totoGame.name} (USDT)`,
-            relatedEntity: totoGameId
+            status: 'completed',
+            description: `پرداخت فرم بازی ${game.name} (USDT)`,
+            relatedEntity: prediction._id,
+            relatedEntityType: 'Prediction'
         });
 
-        // بررسی و اعطای کمیسیون ارجاع (اگر این اولین فرم کاربر است)
-        const userPredictionsCount = await Prediction.countDocuments({ user: userId });
-        if (userPredictionsCount === 1) { // اگر این اولین پیش‌بینی کاربر است
-            await awardReferralCommission(userId, price);
+        // بررسی اولین فرم برای کمیسیون ارجاعی
+        const userPredictionCount = await Prediction.countDocuments({ user: userId });
+        if (userPredictionCount === 1) {
+            await awardReferralCommission(userId, formAmount);
         }
 
-        logger.info(`User ${user.username} (ID: ${userId}) submitted prediction for Toto Game ${totoGame.name} (ID: ${totoGameId}) with Form ID: ${formId}.`);
-
+        logger.info(`User ${user.username} submitted prediction for Game ${game.name} with Form ID ${formId}`);
         res.status(201).json({
             message: 'پیش‌بینی با موفقیت ثبت شد.',
             prediction: {
                 _id: prediction._id,
-                formId: prediction.formId, // اطمینان از ارسال formId در پاسخ
+                formId,
                 user: prediction.user,
                 totoGame: prediction.totoGame,
                 predictions: prediction.predictions,
-                price: prediction.price,
+                formAmount: prediction.formAmount,
                 isScored: prediction.isScored,
                 score: prediction.score,
                 isRefunded: prediction.isRefunded,
@@ -125,8 +203,8 @@ exports.createPrediction = asyncHandler(async (req, res, next) => {
             }
         });
     } catch (error) {
-        logger.error(`Error creating prediction for user ${req.user.username} (ID: ${req.user.id}): ${error.message}. Stack: ${error.stack}`);
-        next(error); // ارسال خطا به middleware مدیریت خطا
+        logger.error(`Error submitting prediction for user ${req.user.username}: ${error.message}`);
+        next(error);
     }
 });
 
@@ -167,6 +245,118 @@ exports.getMyPredictions = asyncHandler(async (req, res) => {
 
     logger.info(`User ${req.user.username} (ID: ${userId}) fetched their predictions.`);
     res.json(sanitizedPredictions);
+});
+
+
+
+// @desc    دانلود فایل اکسل پیش‌بینی‌های یک بازی خاص برای کاربر
+// @route   GET /api/users/games/:gameId/download
+// @access  Private
+exports.downloadGameExcel = asyncHandler(async (req, res) => {
+    const { gameId } = req.params;
+    const userId = req.user._id; // شناسه کاربری که درخواست دانلود داده است.
+
+    if (!gameId.match(/^[0-9a-fA-F]{24}$/)) {
+        res.status(400);
+        throw new Error('شناسه بازی نامعتبر است.');
+    }
+
+    const game = await TotoGame.findById(gameId);
+    if (!game) {
+        res.status(404);
+        throw new Error('بازی یافت نشد.');
+    }
+
+    // واکشی تمام پیش‌بینی‌ها برای این بازی و populate کردن کاربر و اطلاعات کامل بازی Toto
+    const predictions = await Prediction.find({ totoGame: gameId })
+        .populate('user', 'username email') // اطلاعات کاربر را populate می‌کنیم
+        .populate('totoGame'); // اطلاعات کامل TotoGame را populate می‌کنیم تا به matches دسترسی داشته باشیم
+
+    if (!predictions || predictions.length === 0) {
+        res.status(404);
+        throw new Error('هیچ پیش‌بینی‌ای برای این بازی یافت نشد.');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Predictions for ${game.name}`);
+
+    // --- تعریف ستون‌ها ---
+    // ستون‌های اصلی
+    let columns = [
+        { header: 'نام کاربری', key: 'username', width: 20 },
+        { header: 'ایدی فرم', key: 'formId', width: 25 },
+        { header: 'تاریخ ثبت فرم', key: 'submissionDate', width: 25 },
+        { header: 'هزینه فرم (USDT)', key: 'price', width: 20 },
+        { header: 'امتیاز', key: 'score', width: 10 },
+        { header: 'تایید امتیاز', key: 'isScored', width: 15 },
+    ];
+
+    // افزودن ستون‌ها برای هر 15 بازی
+    // فرض می‌کنیم game.matches دارای 15 آیتم معتبر است
+    if (game.matches && game.matches.length === 15) {
+        game.matches.forEach((match, index) => {
+            columns.push({ header: `پیش‌بینی بازی ${index + 1}: ${match.homeTeam} vs ${match.awayTeam}`, key: `prediction_match_${index}`, width: 40 });
+            columns.push({ header: `نتیجه واقعی بازی ${index + 1}`, key: `result_match_${index}`, width: 25 });
+        });
+    } else {
+        // در صورتی که تعداد مسابقات 15 تا نباشد، یک ستون کلی اضافه می‌کنیم
+        columns.push({ header: 'جزئیات پیش‌بینی‌ها', key: 'all_predictions_detail', width: 100 });
+    }
+
+    worksheet.columns = columns;
+    // --- پایان تعریف ستون‌ها ---
+
+    // --- افزودن ردیف‌ها ---
+    predictions.forEach(p => {
+        let rowData = {
+            username: p.user ? p.user.username : 'ناشناس',
+            formId: p.formId,
+            submissionDate: new Date(p.createdAt).toLocaleString('fa-IR'), // تاریخ شمسی
+            price: p.price,
+            isScored: p.isScored ? 'بله' : 'خیر',
+            score: p.score
+        };
+
+        if (game.matches && game.matches.length === 15) {
+            game.matches.forEach((gameMatch, index) => {
+                // پیدا کردن پیش‌بینی کاربر برای این مسابقه خاص
+                const userPredictionForMatch = p.predictions.find(up => up.matchId.toString() === gameMatch._id.toString());
+                
+                let predictionText = '';
+                if (userPredictionForMatch && userPredictionForMatch.chosenOutcome) {
+                    predictionText = userPredictionForMatch.chosenOutcome.join('/');
+                } else {
+                    predictionText = 'N/A';
+                }
+                
+                let actualResultText = gameMatch.result || 'هنوز مشخص نشده';
+                
+                rowData[`prediction_match_${index}`] = predictionText;
+                rowData[`result_match_${index}`] = actualResultText;
+            });
+        } else {
+            // برای حالتی که تعداد مسابقات 15 تا نیست یا مشکل دارد
+            rowData['all_predictions_detail'] = p.predictions.map(up => {
+                const gameMatch = game.matches.find(gm => gm._id.toString() === up.matchId.toString());
+                const matchName = gameMatch ? `${gameMatch.homeTeam} vs ${gameMatch.awayTeam}` : 'بازی نامشخص';
+                const chosen = up.chosenOutcome ? up.chosenOutcome.join('/') : 'N/A';
+                const result = gameMatch ? (gameMatch.result || 'N/A') : 'N/A';
+                return `[${matchName}] پیش‌بینی: ${chosen}, نتیجه: ${result}`;
+            }).join('; ');
+        }
+
+        worksheet.addRow(rowData);
+    });
+    // --- پایان افزودن ردیف‌ها ---
+
+    // تنظیم هدرهای پاسخ برای دانلود فایل
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=predictions_${game.name.replace(/\s/g, '_')}_${gameId}.xlsx`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+    logger.info(`User ${req.user.username} (ID: ${userId}) downloaded predictions for game ${game.name} (ID: ${gameId}).`);
 });
 
 

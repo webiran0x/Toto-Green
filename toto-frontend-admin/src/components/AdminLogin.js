@@ -1,42 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom'; // اضافه شده برای هدایت پس از ورود موفق
 
-// API_BASE_URL دیگر نیازی نیست به عنوان پراپ پاس داده شود،
-// زیرا axios.defaults.baseURL در App.js تنظیم می‌شود
-// و یا axios.create یک baseURL خاص خود را دارد.
-// اما برای وضوح بیشتر، می‌توان آن را اینجا هم تعریف کرد یا از App.js ایمپورت کرد
-// اگر فقط یک baseURL کلی در axios.defaults.baseURL در App.js تنظیم شده،
-// می‌توانیم const API_BASE_URL را اینجا حذف کنیم و صرفاً از axios استفاده کنیم.
-// با فرض اینکه axios.defaults.baseURL در App.js تنظیم شده:
-// const API_BASE_URL = 'https://lotto.green/api'; // اگر نیاز بود اینجا هم باشه
+// آدرس پایه API رو اینجا برای Axios به صورت سراسری تنظیم می‌کنیم.
+// این باعث میشه نیازی به تکرار 'https://lotto.green/api' در هر درخواست نباشه.
+// فرض می‌کنیم این URL از متغیر محیطی REACT_APP_API_BASE_URL میاد.
+// نکته مهم: مطمئن شوید که REACT_APP_API_BASE_URL در فایل .env شما شامل "/api" باشد.
+// مثال: REACT_APP_API_BASE_URL=https://lotto.green/api
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lotto.green/api'; // <-- اطمینان حاصل کنید که "/api" در اینجا یا در متغیر محیطی وجود دارد.
 
-function AdminLogin({ onLoginSuccess }) { // API_BASE_URL از پراپس حذف شد
-  const [username, setUsername] = useState('');
+// این خط بسیار مهمه: به Axios میگه که کوکی‌ها رو در درخواست‌ها ارسال کنه.
+// با توجه به اینکه بک‌اند شما از HttpOnly cookie استفاده می‌کنه، این تنظیم لازمه.
+axios.defaults.withCredentials = true;
+
+function AdminLogin({ onLoginSuccess }) {
+  const [usernameOrEmail, setUsernameOrEmail] = useState(''); // تغییر نام state برای مطابقت با بک‌اند
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { t } = useLanguage();
+  const navigate = useNavigate(); // استفاده از useNavigate
 
   useEffect(() => {
     if (typeof t !== 'function') {
       console.error('Warning: t is not a function!');
     }
   }, [t]);
-
-  // نیازی به axios.create با baseURL نیست اگر axios.defaults.baseURL در App.js تنظیم شده باشد.
-  // اما اگر این کامپوننت نیاز به baseURL متفاوتی دارد یا می‌خواهید مستقل باشد،
-  // می‌توانید آن را نگه دارید. با فرض اینکه از همان baseURL سراسری استفاده می‌شود:
-  // const api = axios.create({
-  //   baseURL: API_BASE_URL,
-  //   withCredentials: true, // این در axios.defaults.withCredentials در App.js تنظیم شده
-  // });
-
-  // در این حالت، مستقیماً از 'axios' (ایمپورت شده) استفاده می‌کنیم
-  // که تنظیمات سراسری 'withCredentials: true' را از App.js به ارث می‌برد.
-  // اگر 'API_BASE_URL' را در App.js به 'axios.defaults.baseURL' منتقل کرده‌اید،
-  // دیگر نیازی نیست اینجا آن را به درخواست‌ها اضافه کنیم.
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,35 +37,40 @@ function AdminLogin({ onLoginSuccess }) { // API_BASE_URL از پراپس حذف
       // 1. ارسال درخواست ورود.
       // Axios به طور خودکار کوکی‌ها را (به خاطر axios.defaults.withCredentials = true) ارسال می‌کند
       // و مرورگر کوکی HttpOnly را از پاسخ سرور ذخیره می‌کند.
-      // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
-      await axios.post('/auth/login', { username, password }); 
+      // مهم: نام فیلد ورودی به 'usernameOrEmail' تغییر یافت تا با شمای Joi در بک‌اند مطابقت داشته باشد.
+      const loginResponse = await axios.post('/auth/login', {
+        usernameOrEmail: usernameOrEmail, // <-- اینجا: ارسال مقدار state به عنوان usernameOrEmail
+        password: password
+      });
 
       // 2. پس از ورود موفقیت‌آمیز، اعتبار ادمین را با استفاده از کوکی دریافتی بررسی می‌کنیم.
       // این درخواست نیز به طور خودکار کوکی را ارسال می‌کند.
-      // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
-      const profileRes = await axios.get('/admin/profile'); 
+      const profileRes = await axios.get('/admin/profile');
 
       // 3. بررسی نقش کاربر
       if (profileRes.data && profileRes.data.role === 'admin') {
         // اگر ادمین بود، فرآیند ورود موفق را اعلام کن
-        // نیازی به پاس دادن توکن نیست، چون با کوکی مدیریت می‌شود
         onLoginSuccess();
+        // کاربر رو به داشبورد هدایت می‌کنیم (این کار در App.js هم انجام می‌شود، اما اینجا برای اطمینان)
+        navigate('/admin/dashboard', { replace: true });
       } else {
         // اگر ادمین نبود، پیام خطا نمایش بده و کاربر را خارج کن
         setError(t('not_an_admin'));
         try {
           // خروج کاربر غیر ادمین، پاک کردن کوکی
-          // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
-          await axios.post('/auth/logout'); 
+          await axios.post('/auth/logout');
         } catch (logoutErr) {
           console.error('Error during auto-logout after failed admin check:', logoutErr);
         }
       }
     } catch (err) {
       // مدیریت خطا در صورت ورود ناموفق
-      const fallbackMessage = 'Login failed';
-      const errorMsg = typeof t === 'function' ? t('login_failed') : fallbackMessage;
-      setError(err.response?.data?.message || errorMsg);
+      // بهبود نمایش خطاهای اعتبارسنجی از بک‌اند
+      if (err.response && err.response.data && err.response.data.errors && Array.isArray(err.response.data.errors)) {
+        setError(err.response.data.errors.join(', ')); // نمایش تمام خطاهای Joi
+      } else {
+        setError(err.response?.data?.message || t('login_failed'));
+      }
       console.error('Login error:', err.response?.data || err.message);
     } finally {
       setLoading(false);
@@ -97,15 +92,15 @@ function AdminLogin({ onLoginSuccess }) { // API_BASE_URL از پراپس حذف
             </div>
           )}
           <div className="mb-4">
-            <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">
-              {t('username')}:
+            <label htmlFor="usernameOrEmail" className="block text-gray-700 text-sm font-bold mb-2">
+              {t('username_or_email')}: {/* تغییر متن لیبل */}
             </label>
             <input
               type="text"
-              id="username"
+              id="usernameOrEmail" // تغییر id برای مطابقت با state جدید
               className="shadow appearance-none border rounded-md w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={usernameOrEmail} // استفاده از state جدید
+              onChange={(e) => setUsernameOrEmail(e.target.value)} // به‌روزرسانی state جدید
               required
               autoComplete="username"
             />

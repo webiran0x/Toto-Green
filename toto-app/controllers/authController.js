@@ -2,38 +2,35 @@
 // کنترلر برای مدیریت احراز هویت کاربر (ثبت نام، ورود و خروج)
 
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // برای مقایسه رمز عبور
 const jwt = require('jsonwebtoken');
-const logger = require('../utils/logger'); // سیستم لاگ‌گیری
+const logger = require('../utils/logger');
+// const generateToken = require('../utils/generateToken'); // این تابع دیگر مستقیماً استفاده نمی‌شود، منطق آن به sendTokenResponse منتقل شده است.
+const { registerSchema, loginSchema } = require('../validation/authValidation');
 
-// تابع کمکی برای تنظیم کوکی JWT
+// ثبت کوکی JWT در پاسخ
 const sendTokenResponse = (user, statusCode, res) => {
-  // ساخت توکن JWT با اطلاعات کاربر
   const token = jwt.sign(
     { userId: user._id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_COOKIE_EXPIRE || '1h' } // مدت اعتبار توکن
+    { expiresIn: process.env.JWT_EXPIRE || '1h' } // از JWT_EXPIRE در .env استفاده کنید
   );
 
-  // تنظیمات کوکی
   const options = {
-    expires: new Date(Date.now() + (parseInt(process.env.JWT_COOKIE_EXPIRE_MS, 10) || 60 * 60 * 1000)), // انقضا به میلی‌ثانیه
-    httpOnly: true, // کوکی فقط از طریق HTTP/S قابل دسترسی است
-    secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS_FOR_DEV === 'true', // در محیط پروداکشن یا وقتی HTTPS فعال است، secure شود
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // در پروداکشن برای کراس‌سایت None، در توسعه Lax
-    domain: process.env.COOKIE_DOMAIN // دامنه کوکی برای دسترسی بین ساب‌دامین‌ها
+    // مدت زمان انقضا کوکی باید با مدت زمان انقضا JWT هماهنگ باشد
+    expires: new Date(Date.now() + (parseInt(process.env.JWT_COOKIE_EXPIRE_MS, 10) || 60 * 60 * 1000)), // پیش‌فرض: 1 ساعت
+    httpOnly: true, // کوکی فقط از طریق HTTP/S قابل دسترسی است، نه JavaScript سمت کلاینت
+    secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS_FOR_DEV === 'true', // فقط در HTTPS ارسال شود
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax', // SameSite policy
+    domain: process.env.COOKIE_DOMAIN, // دامنه کوکی (مثلاً .yourdomain.com)
   };
 
-  // در حالت توسعه و اگر دامنه تنظیم نشده است، domain را حذف می‌کنیم
+  // در محیط توسعه، اگر COOKIE_DOMAIN تعریف نشده باشد، آن را حذف کنید تا روی localhost کار کند
   if (process.env.NODE_ENV === 'development' && !process.env.COOKIE_DOMAIN) {
     delete options.domain;
   }
 
-  // ست کردن کوکی 'token'
   res.cookie('token', token, options);
-
-  // همچنین توکن را در پاسخ JSON بازمی‌گردانیم (اختیاری)
-  // ولی معمولاً فقط کوکی کافی است و ارسال توکن در بدنه لازم نیست
   res.status(statusCode).json({
     message: statusCode === 201 ? 'ثبت نام با موفقیت انجام شد.' : 'ورود موفقیت‌آمیز.',
     user: {
@@ -44,100 +41,110 @@ const sendTokenResponse = (user, statusCode, res) => {
       balance: user.balance,
       score: user.score,
     },
-    // token // اگر لازم داری توکن در بدنه بفرستی، این خط را از حالت کامنت خارج کن
   });
 };
 
-// ثبت نام کاربر جدید
+// @desc    ثبت نام کاربر جدید
+// @route   POST /api/auth/register
+// @access  Public
 exports.registerUser = async (req, res) => {
+  // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+  const { error } = registerSchema.validate(req.body, { abortEarly: false });
+  if (error) {
+    const errors = error.details.map(err => err.message);
+    logger.warn(`Validation error during registration: ${errors.join(', ')}`);
+    return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+  }
+
   const { username, email, password, referrerUsername } = req.body;
 
   try {
-    // چک کردن وجود نام کاربری
-    let user = await User.findOne({ username });
-    if (user) {
-      logger.warn(`Registration attempt with existing username: ${username}`);
-      return res.status(400).json({ message: 'نام کاربری قبلاً استفاده شده است.' });
+    // Check if user already exists by username or email
+    const userExists = await User.findOne({ $or: [{ username }, { email }] });
+    if (userExists) {
+      logger.warn(`Registration failed: username '${username}' or email '${email}' already exists.`);
+      return res.status(400).json({ message: 'کاربری با این نام کاربری یا ایمیل از قبل وجود دارد.' });
     }
 
-    // چک کردن وجود ایمیل
-    user = await User.findOne({ email });
-    if (user) {
-      logger.warn(`Registration attempt with existing email: ${email}`);
-      return res.status(400).json({ message: 'ایمیل قبلاً استفاده شده است.' });
-    }
-
-    // پیدا کردن معرف (در صورت وجود)
     let referrer = null;
     if (referrerUsername) {
       referrer = await User.findOne({ username: referrerUsername });
       if (!referrer) {
-        logger.warn(`Referrer username '${referrerUsername}' not found for new user ${username}.`);
+        logger.warn(`Referrer not found: ${referrerUsername}`);
+        return res.status(400).json({ message: 'نام کاربری ارجاع‌دهنده یافت نشد.' });
       }
     }
 
-    // ایجاد کاربر جدید
-    user = new User({
+    const user = new User({
       username,
       email,
-      password,
+      password, // هش کردن رمز عبور در pre-save hook مدل User انجام می‌شود
       referrer: referrer ? referrer._id : null,
     });
 
     await user.save();
-    logger.info(`New user registered: ${username} (ID: ${user._id}). Referrer: ${referrerUsername || 'None'}`);
+    logger.info(`User registered: ${user.username} (ID: ${user._id})`);
 
-    // ارسال کوکی و پاسخ موفقیت
     sendTokenResponse(user, 201, res);
   } catch (error) {
-    logger.error('Error during user registration:', error);
-    res.status(500).json({ message: 'خطا در ثبت نام کاربر.' });
+    logger.error(`Registration error: ${error.message}`);
+    res.status(500).json({ message: 'خطای سرور.', error: error.message });
   }
 };
 
-// ورود کاربر
+// @desc    ورود کاربر
+// @route   POST /api/auth/login
+// @access  Public
 exports.loginUser = async (req, res) => {
-  const { username, password } = req.body;
+  // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+  const { error } = loginSchema.validate(req.body);
+  if (error) {
+    const errors = error.details.map(err => err.message);
+    logger.warn(`Validation error during login: ${errors.join(', ')}`);
+    return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+  }
+
+  const { usernameOrEmail, password } = req.body;
 
   try {
-    // یافتن کاربر با نام کاربری
-    const user = await User.findOne({ username });
+    let user;
+    // Check if input is email or username
+    if (usernameOrEmail.includes('@')) {
+      user = await User.findOne({ email: usernameOrEmail });
+    } else {
+      user = await User.findOne({ username: usernameOrEmail });
+    }
+
     if (!user) {
-      logger.warn(`Login attempt failed: Username not found - ${username}`);
-      return res.status(400).json({ message: 'نام کاربری یا رمز عبور اشتباه است.' });
+      logger.warn(`Login failed: No user found for '${usernameOrEmail}'`);
+      return res.status(401).json({ message: 'نام کاربری/ایمیل یا رمز عبور نامعتبر است.' });
     }
 
-    // بررسی صحت رمز عبور
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      logger.warn(`Login attempt failed: Incorrect password for user - ${username}`);
-      return res.status(400).json({ message: 'نام کاربری یا رمز عبور اشتباه است.' });
+      logger.warn(`Login failed: Incorrect password for ${user.username}`);
+      return res.status(401).json({ message: 'نام کاربری/ایمیل یا رمز عبور نامعتبر است.' });
     }
 
-    // چک وضعیت کاربر (مسدود یا معلق)
     if (user.status === 'blocked') {
-      logger.warn(`Login attempt failed: User ${username} is blocked.`);
-      return res.status(403).json({ message: 'حساب کاربری شما مسدود شده است. لطفاً با پشتیبانی تماس بگیرید.' });
-    }
-    if (user.status === 'suspended') {
-      logger.warn(`Login attempt failed: User ${username} is suspended.`);
-      return res.status(403).json({ message: 'حساب کاربری شما معلق شده است. لطفاً با پشتیبانی تماس بگیرید.' });
+      logger.warn(`Login failed: User ${user.username} is blocked.`);
+      return res.status(403).json({ message: 'حساب کاربری شما مسدود شده است.' });
     }
 
-    logger.info(`User logged in: ${username} (ID: ${user._id})`);
-
-    // ارسال کوکی و پاسخ موفقیت
+    logger.info(`User logged in: ${user.username}`);
     sendTokenResponse(user, 200, res);
   } catch (error) {
-    logger.error('Error during user login:', error);
-    res.status(500).json({ message: 'خطا در ورود کاربر.' });
+    logger.error(`Login error: ${error.message}`);
+    res.status(500).json({ message: 'خطای سرور.', error: error.message });
   }
 };
 
-// خروج کاربر (پاک کردن کوکی)
+// @desc    خروج کاربر
+// @route   POST /api/auth/logout
+// @access  Public
 exports.logoutUser = (req, res) => {
   const options = {
-    expires: new Date(Date.now() + 10 * 1000), // انقضا کوکی در 10 ثانیه
+    expires: new Date(Date.now() + 10 * 1000), // کوکی بلافاصله منقضی شود
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production' || process.env.USE_HTTPS_FOR_DEV === 'true',
     sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
@@ -148,8 +155,7 @@ exports.logoutUser = (req, res) => {
     delete options.domain;
   }
 
-  // کوکی token را به 'none' تغییر و منقضی می‌کنیم
-  res.cookie('token', 'none', options);
-  logger.info(`User logged out (cookie cleared).`);
+  res.cookie('token', 'none', options); // توکن را به 'none' تغییر دهید یا حذف کنید
+  logger.info(`User logged out`);
   res.status(200).json({ message: 'خروج موفقیت‌آمیز.' });
 };

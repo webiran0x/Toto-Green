@@ -1,3 +1,6 @@
+// toto-frontend-admin/src/App.js
+// فایل اصلی اپلیکیشن React پنل مدیریت
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -26,7 +29,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 // آدرس پایه API رو اینجا برای Axios به صورت سراسری تنظیم می‌کنیم.
 // این باعث میشه نیازی به تکرار 'https://lotto.green/api' در هر درخواست نباشه.
 // فرض می‌کنیم این URL از متغیر محیطی REACT_APP_API_BASE_URL میاد.
-axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lotto.green';
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lotto.green/api'; // <-- تغییر: اطمینان حاصل کنید که "/api" در اینجا وجود دارد.
 
 // این خط بسیار مهمه: به Axios میگه که کوکی‌ها رو در درخواست‌ها ارسال کنه.
 // با توجه به اینکه بک‌اند شما از HttpOnly cookie استفاده می‌کنه، این تنظیم لازمه.
@@ -45,7 +48,7 @@ function RootApp() {
     const verifyAuth = async () => {
       try {
         // Axios به صورت خودکار کوکی احراز هویت رو (به خاطر axios.defaults.withCredentials = true) ارسال می‌کنه.
-        const res = await axios.get('/admin/profile'); // اینجا فقط '/api/admin/profile' کافیه چون baseURL تنظیم شده.
+        const res = await axios.get('/admin/profile'); // مسیر بدون baseURL، چون در axios.defaults تنظیم شده.
         if (res.data?.role === 'admin') {
           setIsAuthenticated(true);
         } else {

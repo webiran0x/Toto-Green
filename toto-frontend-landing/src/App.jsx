@@ -16,9 +16,8 @@ function App() {
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      const res = await axios.get('/users/profile'); // مسیر بدون API_BASE_URL
-      // --- اصلاح شده: res.data.id یا res.data._id را چک کن ---
-      if (res.status === 200 && (res.data.id || res.data._id)) { 
+      const res = await axios.get('/users/profile');
+      if (res.status === 200 && (res.data.id || res.data._id)) {
         setIsAuthenticated(true);
         console.log("App.jsx: User is authenticated via cookie.");
       } else {
@@ -27,7 +26,7 @@ function App() {
       }
     } catch (error) {
       setIsAuthenticated(false);
-      console.error("App.jsx: Authentication check failed (e.g., 401/403 or network error):", error.response?.data?.message || error.message);
+      console.error("App.jsx: Authentication check failed:", error.response?.data?.message || error.message);
     }
   }, []);
 
@@ -38,7 +37,6 @@ function App() {
   const fetchGameData = useCallback(async () => {
     setLoading(true);
     setGlobalError(null);
-
     let hasError = false;
 
     try {
@@ -48,8 +46,22 @@ function App() {
       console.error("Error fetching last completed game data:", err);
       setLastGame({
         name: 'بازی نمونه (خطا در بارگذاری)',
-        matches: [{ _id: 'mockmatch1', homeTeam: 'تیم میزبان', awayTeam: 'تیم میهمان', date: new Date().toISOString(), result: '1', isClosed: true }],
-        totalPot: 0, commissionAmount: 0, prizePool: 0, prizes: { firstPlace: 0, secondPlace: 0, thirdPlace: 0 }, winners: { first: [], second: [], third: [] }, status: 'completed', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+        matches: [{
+          _id: 'mockmatch1',
+          homeTeam: 'تیم میزبان',
+          awayTeam: 'تیم میهمان',
+          date: new Date().toISOString(),
+          result: '1',
+          isClosed: true
+        }],
+        totalPot: 0,
+        commissionAmount: 0,
+        prizePool: 0,
+        prizes: { firstPlace: 0, secondPlace: 0, thirdPlace: 0 },
+        winners: { first: [], second: [], third: [] },
+        status: 'completed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
       setGlobalError("اطلاعات آخرین بازی تکمیل شده با خطا بارگذاری شد.");
       hasError = true;
@@ -60,9 +72,13 @@ function App() {
       setUpcomingGames(upcomingRes.data);
     } catch (err) {
       console.error("Error fetching upcoming games data:", err);
-      setUpcomingGames([
-        { _id: 'mock1', name: 'مسابقه نمونه آتی (خطا در بارگذاری)', deadline: new Date(Date.now() + 86400000 * 5).toISOString(), status: 'open', matches:[] },
-      ]);
+      setUpcomingGames([{
+        _id: 'mock1',
+        name: 'مسابقه نمونه آتی (خطا در بارگذاری)',
+        deadline: new Date(Date.now() + 86400000 * 5).toISOString(),
+        status: 'open',
+        matches: []
+      }]);
       setGlobalError(prev => (prev ? prev + " و " : "") + "اطلاعات بازی‌های آتی با خطا بارگذاری شد.");
       hasError = true;
     }
@@ -78,7 +94,9 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white flex flex-col items-center justify-center font-inter">
       <header className="w-full bg-black bg-opacity-40 shadow-xl py-4 absolute top-0 z-10 backdrop-blur-sm">
         <div className="container mx-auto flex justify-between items-center px-4">
-          <h1 className="text-4xl font-extrabold tracking-wide text-blue-300 transform transition-transform duration-300 hover:scale-105">TotoLand</h1>
+          <h1 className="text-4xl font-extrabold tracking-wide text-blue-300 transform transition-transform duration-300 hover:scale-105">
+            TotoLand
+          </h1>
           <nav>
             <a
               href="https://panel.lotto.green/auth"
@@ -108,8 +126,11 @@ function App() {
 
       <div className="container mx-auto px-4 py-8 flex flex-col gap-8 w-full max-w-6xl z-0">
         {loading && (
-          <div className="text-center text-lg text-blue-200 py-8">در حال بارگذاری اطلاعات بازی‌ها...</div>
+          <div className="text-center text-lg text-blue-200 py-8">
+            در حال بارگذاری اطلاعات بازی‌ها...
+          </div>
         )}
+
         {globalError && (
           <div className="bg-red-800 bg-opacity-70 border border-red-500 text-red-200 px-4 py-3 rounded relative mb-4 shadow-lg">
             {globalError}
@@ -126,10 +147,9 @@ function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20">
-                <OpenGamesPredictionSection
-                  isAuthenticated={isAuthenticated}
-                />
+                <OpenGamesPredictionSection isAuthenticated={isAuthenticated} />
               </div>
+
               {upcomingGames.length > 0 && (
                 <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20">
                   <UpcomingGamesSection upcomingGames={upcomingGames} />

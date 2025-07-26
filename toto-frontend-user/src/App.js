@@ -15,6 +15,7 @@ import MyTransactions from './components/MyTransactions';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import CreateTicket from './components/CreateTicket';
 import MyTickets from './components/MyTickets';
+import ExpiredGames from './components/ExpiredGames'; // <--- مطمئن شوید که این ایمپورت وجود دارد
 
 // --- شروع تغییرات مهم ---
 
@@ -123,6 +124,7 @@ function RootApp() {
             <Route path="/withdraw" element={isAuthenticated ? <Withdraw /> : <Navigate to="/auth" replace />} />
             <Route path="/support/create" element={isAuthenticated ? <CreateTicket /> : <Navigate to="/auth" replace />} />
             <Route path="/support/my-tickets" element={isAuthenticated ? <MyTickets /> : <Navigate to="/auth" replace />} />
+            <Route path="/expired-games" element={<ExpiredGames />} /> {/* <--- این خط جدید را اضافه کنید */}
             <Route path="*" element={<h2 className="text-center text-red-500 text-3xl font-bold mt-20">{t('page_not_found')}</h2>} />
           </Routes>
         </main>

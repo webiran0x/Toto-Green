@@ -1,9 +1,17 @@
 // toto-frontend-user/src/components/Withdraw.js
+// کامپوننت برای عملیات برداشت وجه با UI بهبود یافته و مناسب پروداکشن
+
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
+import {
+  BanknotesIcon, // آیکون اصلی برداشت
+  CheckCircleIcon, // آیکون موفقیت
+  ExclamationCircleIcon, // آیکون خطا
+  ArrowPathIcon // آیکون پردازش
+} from '@heroicons/react/24/outline'; // ایمپورت آیکون‌ها از Heroicons
 
-// token و API_BASE_URL از پراپس حذف شدند
+// token و API_BASE_URL از پراپس حذف شدند، زیرا axios.defaults.baseURL در App.js تنظیم شده است.
 function Withdraw() {
   const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
@@ -20,31 +28,39 @@ function Withdraw() {
     setLoading(true);
 
     try {
-      // درخواست Axios:
+      // آماده‌سازی داده‌ها برای ارسال به بک‌اند
+      const requestBody = {
+        amount: Number(amount), // اطمینان حاصل کنید که مبلغ به صورت عدد ارسال می‌شود
+        walletAddress,
+        currency: 'USDT', // فرض می‌کنیم فعلاً فقط USDT پشتیبانی می‌شود
+        network,
+      };
+
+      // ارسال درخواست به بک‌اند
       // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
       // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
-      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
       const res = await axios.post(
-        '/users/withdraw', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
-        {
-          amount: Number(amount),
-          walletAddress,
-          network,
-        },
-        // نیازی به هدر Authorization نیست
+        '/users/withdraw', // مسیر: /api/users/withdraw
+        requestBody,
       );
 
+      // پیام موفقیت
       setMessage(
         t('withdrawal_success', {
           amount: Number(amount).toLocaleString('fa-IR'),
-          newBalance: res.data.newBalance.toLocaleString('fa-IR'),
+          // newBalance: res.data.newBalance.toLocaleString('fa-IR'), // این خط کامنت شد زیرا بک‌اند newBalance را برنمی‌گرداند
         })
       );
       setAmount('');
       setWalletAddress('');
       setNetwork('TRC20'); // ریست شبکه
     } catch (err) {
-      setError(err.response?.data?.message || t('error_withdrawing_funds'));
+      // بهبود نمایش خطاهای اعتبارسنجی از بک‌اند
+      if (err.response && err.response.data && err.response.data.errors && Array.isArray(err.response.data.errors)) {
+        setError(err.response.data.errors.join(', ')); // نمایش تمام خطاهای Joi
+      } else {
+        setError(err.response?.data?.message || t('error_withdrawing_funds'));
+      }
       console.error('Withdrawal error:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
@@ -52,62 +68,106 @@ function Withdraw() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto mt-10">
-      <h2 className="text-2xl font-bold mb-4 text-center">{t('withdraw_funds')}</h2>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-500 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-3xl w-full max-w-md transform transition-all duration-300 hover:scale-[1.01] border-4 border-purple-200">
+        <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+          {t('withdraw_funds')}
+        </h2>
 
-      {message && <div className="text-green-700 bg-green-100 p-3 mb-4 rounded">{message}</div>}
-      {error && <div className="text-red-700 bg-red-100 p-3 mb-4 rounded">{error}</div>}
+        {/* پیام‌های موفقیت و خطا با آیکون */}
+        {message && (
+          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-4 animate-fadeIn">
+            <div className="flex items-center">
+              <CheckCircleIcon className="h-6 w-6 text-green-500 mr-3" />
+              <p className="font-medium">{message}</p>
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4 animate-fadeIn">
+            <div className="flex items-center">
+              <ExclamationCircleIcon className="h-6 w-6 text-red-500 mr-3" />
+              <p className="font-medium">{error}</p>
+            </div>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit}>
-        {/* Amount */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">{t('withdrawal_amount')}</label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            min="1"
-            step="0.01"
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Amount Input */}
+          <div>
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('withdrawal_amount')}:
+            </label>
+            <input
+              type="number"
+              id="amount"
+              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 text-lg transition duration-200 ease-in-out"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              min="1"
+              step="0.01"
+              placeholder={t('enter_amount_usdt_placeholder')} 
+            />
+          </div>
 
-        {/* Wallet Address */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">{t('usdt_wallet_address')}</label>
-          <input
-            type="text"
-            value={walletAddress}
-            onChange={(e) => setWalletAddress(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2"
-          />
-        </div>
+          {/* Wallet Address Input */}
+          <div>
+            <label htmlFor="walletAddress" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('usdt_wallet_address')}:
+            </label>
+            <input
+              type="text"
+              id="walletAddress"
+              className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 text-lg transition duration-200 ease-in-out"
+              value={walletAddress}
+              onChange={(e) => setWalletAddress(e.target.value)}
+              required
+              placeholder={t('enter_wallet_address_placeholder')}
+            />
+          </div>
 
-        {/* Network */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1">{t('wallet_network')}</label>
-          <select
-            value={network}
-            onChange={(e) => setNetwork(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2"
+          {/* Network Select */}
+          <div>
+            <label htmlFor="network" className="block text-sm font-medium text-gray-700 mb-1">
+              {t('wallet_network')}:
+            </label>
+            <div className="relative">
+              <select
+                id="network"
+                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 p-3 text-lg appearance-none bg-white transition duration-200 ease-in-out pr-10"
+                value={network}
+                onChange={(e) => setNetwork(e.target.value)}
+                required
+              >
+                <option value="TRC20">TRC20</option>
+                <option value="ERC20">ERC20</option>
+                <option value="BEP20">BEP20</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-xl shadow-lg flex items-center justify-center"
           >
-            <option value="TRC20">TRC20</option>
-            <option value="ERC20">ERC20</option>
-            <option value="BEP20">BEP20</option>
-          </select>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold transition"
-        >
-          {loading ? t('processing_withdrawal') : t('submit_withdrawal_request')}
-        </button>
-      </form>
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <ArrowPathIcon className="animate-spin h-5 w-5 mr-3" /> {t('processing_withdrawal')}
+              </span>
+            ) : (
+              <span className="flex items-center justify-center">
+                <BanknotesIcon className="h-6 w-6 mr-3" /> {t('submit_withdrawal_request')}
+              </span>
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

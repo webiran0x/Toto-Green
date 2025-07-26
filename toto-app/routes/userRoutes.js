@@ -14,12 +14,12 @@ const userController = require('../controllers/userController');
 const {
   getUserProfile,
   updateUserProfile,
-  changePassword,
+  changeUserPassword,
   submitPrediction,
   getMyPredictions,
   deposit,
   getMyTransactions,
-  withdrawFunds,
+  requestWithdrawal,
   claimPrize,
   getSingleCryptoDeposit
 } = userController;
@@ -31,15 +31,15 @@ router.route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
 
-router.put('/change-password', protect, changePassword);
+router.put('/change-password', protect, changeUserPassword);
 router.post('/deposit', protect, deposit);
-router.post('/withdraw', protect, withdrawFunds);
+router.post('/withdraw', protect, requestWithdrawal);
 router.get('/my-predictions', protect, getMyPredictions);
 router.get('/my-transactions', protect, getMyTransactions);
 router.post('/predict', protect, submitPrediction);
 router.post('/claim-prize/:gameId', protect, claimPrize);
 router.get('/crypto-deposits/:id', protect, getSingleCryptoDeposit);
 router.get('/games/expired', protect, getExpiredGames);
-// router.get('/games/:gameId/download', protect, downloadGameExcel);
+router.get('/games/:gameId/download', protect, downloadGameExcel);
 
 module.exports = router;

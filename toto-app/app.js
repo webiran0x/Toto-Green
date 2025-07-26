@@ -9,7 +9,7 @@ const cron = require('node-cron'); // برای زمان‌بندی وظایف
 const path = require('path'); // اضافه شده: برای کار با مسیرها
 const fs = require('fs'); // اضافه شده: برای کار با فایل‌ها
 const shkeeperWebhookRoutes = require('./routes/shkeeperWebhookRoutes');
-const totoRoutes = require('./routes/totoGameRoutes');
+const totoRoutes = require('./routes/totoGameRoutes'); // این ایمپورت اضافه بود و ممکن است تکراری با totoGameRoutes باشد
 const cookieParser = require('cookie-parser'); // <--- ADDED: For parsing cookies
 
 
@@ -52,7 +52,7 @@ app.use(cors({
         }
         return callback(null, true);
     },
-    credentials: true,
+    credentials: true, // این بسیار مهم است
 }));
 
 
@@ -82,8 +82,8 @@ app.use('/api/external', externalApiRoutes);
 app.use('/api/crypto', cryptoRoutes);
 app.use('/api/shkeeper/webhook', shkeeperWebhookRoutes);
 app.use('/api/support', supportRoutes); // <--- اضافه شد: استفاده از مسیرهای پشتیبانی
-app.use('/api/users', userRoutes); // ✅ برای درخواست‌هایی مثل /api/users/games/:id/download
-app.use('/api/totos', totoRoutes); // در حال حاضر داری اینو
+app.use('/api/users', userRoutes);
+// app.use('/api/totos', totoRoutes); // این خط احتمالا تکراری است و با totoGameRoutes تداخل دارد، بهتر است حذف یا بررسی شود.
 
 
 

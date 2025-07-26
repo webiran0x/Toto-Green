@@ -1,79 +1,184 @@
 // toto-frontend-user/src/components/ExpiredGames.js
-import React, { useEffect, useState, useCallback } from 'react'; // useCallback اضافه شد
-import axios from 'axios';
-// useLanguage اضافه نشده است، اما اگر متن فارسی نیاز به ترجمه دارد، باید اضافه شود.
+// کامپوننت نمایش و مدیریت مسابقات پایان‌یافته کاربر با UI بهبود یافته و صفحه‌بندی
 
-const ExpiredGames = () => {
+import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
+import { useLanguage } from '../contexts/LanguageContext';
+import {
+  ArrowDownTrayIcon, // آیکون دانلود
+  ClockIcon, // آیکون بسته/منقضی
+  CheckCircleIcon, // آیکون تکمیل شده
+  XCircleIcon, // آیکون لغو شده
+  CurrencyDollarIcon, // آیکون مبلغ
+  TrophyIcon, // آیکون جایزه
+  ChevronLeftIcon, // برای صفحه‌بندی
+  ChevronRightIcon, // برای صفحه‌بندی
+  ClipboardDocumentListIcon // آیکون برای تعداد فرم‌ها
+} from '@heroicons/react/24/outline'; // ایمپورت آیکون‌ها
+
+function ExpiredGames() {
+  const { t } = useLanguage();
   const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true); // وضعیت لودینگ اضافه شد
-  const [error, setError] = useState(''); // وضعیت خطا اضافه شد
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // State های مربوط به صفحه‌بندی
+  const [currentPage, setCurrentPage] = useState(1);
+  const [gamesPerPage] = useState(6); // تعداد بازی در هر صفحه (قابل تنظیم)
+  const [totalGames, setTotalGames] = useState(0); // کل بازی‌ها (از بک‌اند)
+  const [totalPages, setTotalPages] = useState(1); // کل صفحات (از بک‌اند)
 
   // تابع fetchGames را داخل useCallback قرار می‌دهیم
   const fetchGames = useCallback(async () => {
     try {
-      setLoading(true); // شروع لودینگ
-      setError(''); // پاک کردن خطاهای قبلی
+      setLoading(true);
+      setError('');
 
-      // axios به صورت خودکار baseURL و withCredentials را از App.js استفاده می‌کند.
-      // بنابراین، نیازی به token و هدر Authorization دستی نیست.
-      const response = await axios.get('/users/games/expired'); // مسیر اصلاح شد: /api/ حذف شد
+      // ساخت URL کوئری با پارامترهای صفحه‌بندی
+      const params = {
+        page: currentPage,
+        limit: gamesPerPage,
+      };
 
-      // اگر ساختار پاسخ مثل { games: [...] } است، می‌توانید آن را به این شکل ست کنید:
-      // setGames(response.data.games);
+      // درخواست Axios به مسیر /api/users/games/expired
+      const res = await axios.get('/users/games/expired', { params });
+      
+      setGames(res.data.games); 
+      setTotalGames(res.data.totalCount);
+      setTotalPages(res.data.totalPages);
 
-      // اگر پاسخ مستقیم آرایه است (که به نظر می‌رسد همینطور است):
-      setGames(response.data);
-    } catch (error) {
-      // بهتر است خطاهای مربوط به عدم احراز هویت را در App.js مدیریت کنید.
-      // در اینجا فقط خطاهای دریافت اطلاعات را نمایش می‌دهیم.
-      console.error('Error fetching expired games:', error.response?.data || error.message);
-      setError('خطا در دریافت مسابقات پایان‌یافته.'); // پیام خطای عمومی
+    } catch (err) {
+      console.error('Error fetching expired games:', err.response?.data?.message || err.message);
+      setError(t('error_fetching_expired_games')); // پیام خطای ترجمه شده
     } finally {
-      setLoading(false); // پایان لودینگ
+      setLoading(false);
     }
-  }, []); // هیچ وابستگی به token یا API_BASE_URL نیست
+  }, [t, currentPage, gamesPerPage]); // وابستگی‌ها به‌روزرسانی شدند
 
   useEffect(() => {
     fetchGames();
-  }, [fetchGames]); // fetchGames به عنوان dependency برای useEffect
+  }, [fetchGames]);
 
-  const handleDownload = (gameId) => {
-    // استفاده از axios.defaults.baseURL برای ساخت URL دانلود
-    // اگر فایل در همین دامنه API ارائه می‌شود، مرورگر کوکی‌ها را به صورت خودکار ارسال می‌کند.
+  // هندلر تغییر صفحه
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const downloadExcel = (gameId) => {
     const downloadUrl = `${axios.defaults.baseURL}/users/games/${gameId}/download`;
     window.open(downloadUrl, '_blank');
   };
 
-  if (loading) {
-    return <div className="text-center py-4">در حال بارگذاری مسابقات...</div>;
-  }
+  // تابع برای دریافت کلاس‌های CSS بر اساس وضعیت بازی
+  const getGameStatusClasses = (status) => {
+    switch (status) {
+      case 'closed': return 'bg-orange-100 text-orange-800';
+      case 'completed': return 'bg-purple-100 text-purple-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-  if (error) {
-    return <div className="text-center text-red-600 py-4">{error}</div>;
-  }
+  // تابع برای دریافت آیکون بر اساس وضعیت بازی
+  const getGameStatusIcon = (status) => {
+    switch (status) {
+      case 'closed': return <ClockIcon className="h-4 w-4 mr-1" />;
+      case 'completed': return <CheckCircleIcon className="h-4 w-4 mr-1" />;
+      case 'cancelled': return <XCircleIcon className="h-4 w-4 mr-1" />;
+      default: return null;
+    }
+  };
+
+  if (loading) return <div className="text-center py-8 text-gray-700">{t('loading')}</div>;
+  if (error) return <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">{error}</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">مسابقات پایان یافته</h2>
-      {games.length === 0 ? (
-        <p className="text-gray-600">هیچ مسابقه پایان‌یافته‌ای یافت نشد.</p>
+    <div className="mt-10 p-4 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">{t('expired_games_title')}</h2>
+      {games.length === 0 && !loading ? (
+        <p className="text-gray-600 text-center py-4">{t('no_expired_games')}</p>
       ) : (
-        <ul className="list-disc pl-5">
-          {games.map(game => (
-            <li key={game._id} className="mb-2 p-2 border-b border-gray-200">
-              <strong className="text-blue-700">{game.name}</strong> - تاریخ: {new Date(game.endDate || game.deadline).toLocaleDateString('fa-IR')}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {games.map((game) => (
+              <div key={game._id} className="bg-gray-50 p-5 rounded-xl shadow-lg border border-gray-200 flex flex-col transform transition-transform duration-300 hover:scale-[1.02] animate-fadeIn">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-xl font-bold text-gray-800">{game.name}</h3>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center ${getGameStatusClasses(game.status)}`}>
+                    {getGameStatusIcon(game.status)} {t(`status_${game.status}`)}
+                  </span>
+                </div>
+                
+                <p className="text-gray-700 text-sm mb-1">
+                  {t('deadline')}: {new Date(game.deadline).toLocaleString('fa-IR')}
+                </p>
+                
+                {/* اطلاعات مالی و تعداد فرم‌ها */}
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                    <div className="flex items-center">
+                        <CurrencyDollarIcon className="h-4 w-4 text-blue-500 mr-1" />
+                        <span className="font-medium">{t('total_pot')}:</span> {game.totalPot?.toLocaleString('fa-IR') || 0} {t('usdt')}
+                    </div>
+                    <div className="flex items-center">
+                        <TrophyIcon className="h-4 w-4 text-yellow-500 mr-1" />
+                        <span className="font-medium">{t('prize_pool')}:</span> {game.prizePool?.toLocaleString('fa-IR') || 0} {t('usdt')}
+                    </div>
+                    <div className="flex items-center">
+                        <CurrencyDollarIcon className="h-4 w-4 text-purple-500 mr-1" />
+                        <span className="font-medium">{t('commission_amount')}:</span> {game.commissionAmount?.toLocaleString('fa-IR') || 0} {t('usdt')}
+                    </div>
+                    {/* --- جدید: تعداد فرم‌های شرکت داده شده --- */}
+                    <div className="flex items-center">
+                        <ClipboardDocumentListIcon className="h-4 w-4 text-gray-600 mr-1" />
+                        <span className="font-medium">{t('submitted_forms_count')}:</span> {game.submittedFormsCount?.toLocaleString('fa-IR') || 0}
+                    </div>
+                    {/* --- پایان جدید --- */}
+                </div>
+
+                <button
+                  className="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+                  onClick={() => downloadExcel(game._id)}
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5 mr-2" /> {t('download_excel')}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* بخش صفحه‌بندی */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center mt-6 space-x-2">
               <button
-                onClick={() => handleDownload(game._id)}
-                className="ml-4 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-md text-sm transition duration-200"
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150"
               >
-                دانلود شرکت‌کنندگان (Excel/CSV)
+                <ChevronLeftIcon className="h-5 w-5" />
               </button>
-            </li>
-          ))}
-        </ul>
+              {[...Array(totalPages).keys()].map(number => (
+                <button
+                  key={number + 1}
+                  onClick={() => paginate(number + 1)}
+                  className={`px-4 py-2 rounded-md font-semibold ${
+                    currentPage === number + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  } transition duration-150`}
+                >
+                  {number + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150"
+              >
+                <ChevronRightIcon className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
-};
+}
 
 export default ExpiredGames;

@@ -16,6 +16,16 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 
+const {
+    createUserByAdminSchema,
+    updateUserByAdminSchema,
+    createTotoGameSchema,
+    setTotoGameResultsSchema,
+    updateWithdrawalStatusSchema,
+    updateCryptoDepositStatusSchema,
+    updateAdminSettingsSchema,
+} = require('../validation/adminValidation');
+
 // --- اصلاح شده: فقط processTotoGameResults و handleGameCancellationAndRefunds از totoService ایمپورت می‌شوند ---
 // rewardWinners دیگر از totoRewardService.js ایمپورت نمی‌شود، زیرا آن تابع تکراری است.
 const { processTotoGameResults, handleGameCancellationAndRefunds } = require('../services/totoService');
@@ -39,43 +49,104 @@ const getAdminProfile = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    دریافت تمام کاربران (با قابلیت جستجو، فیلتر و صفحه‌بندی)
+// @desc    Get all users (with filters)
 // @route   GET /api/admin/users
 // @access  Private/Admin
-const getAllUsers = asyncHandler(async (req, res) => {
-    const { keyword, role, status, accessLevel, page = 1, limit = 10 } = req.query;
+const getAllUsers = async (req, res) => {
+    // ... کد موجود برای فیلترینگ و pagination
+    try {
+        // اعتبار سنجی برای فیلترها و مرتب‌سازی در اینجا می‌تواند اضافه شود
+        // مثلاً Joi.object({ page: Joi.number().min(1).default(1), limit: Joi.number().min(1).max(100).default(10), ... })
 
-    const query = {};
-    if (keyword) {
-        query.$or = [
-            { username: { $regex: keyword, $options: 'i' } },
-            { email: { $regex: keyword, $options: 'i' } }
-        ];
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        let query = {};
+        if (req.query.search) {
+            query.$or = [
+                { username: { $regex: req.query.search, $options: 'i' } },
+                { email: { $regex: req.query.search, $options: 'i' } }
+            ];
+        }
+        if (req.query.role) {
+            query.role = req.query.role;
+        }
+        if (req.query.status) {
+            query.status = req.query.status;
+        }
+        // Add more filters as needed (e.g., balance range, score range)
+
+        const users = await User.find(query)
+            .select('-password') // Don't return password hash
+            .limit(limit)
+            .skip(skip)
+            .sort({ createdAt: -1 }); // Default sort by newest
+
+        const totalUsers = await User.countDocuments(query);
+
+        res.status(200).json({
+            users,
+            totalPages: Math.ceil(totalUsers / limit),
+            currentPage: page,
+            totalUsers
+        });
+
+    } catch (error) {
+        logger.error(`Error fetching all users: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
     }
-    if (role) {
-        query.role = role;
-    }
-    if (status) {
-        query.status = status;
-    }
-    if (accessLevel) {
-        query.accessLevel = accessLevel;
+};
+
+// @desc    Create a new user by Admin
+// @route   POST /api/admin/users
+// @access  Private/Admin
+const createUser = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = createUserByAdminSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error creating user by admin: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
 
-    const count = await User.countDocuments(query);
-    const users = await User.find(query)
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        .select('-password')
-        .sort({ createdAt: -1 });
+    const { username, email, password, role, balance, score, level } = req.body;
 
-    res.json({
-        users,
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        totalUsers: count
-    });
-});
+    try {
+        const userExists = await User.findOne({ $or: [{ username }, { email }] });
+        if (userExists) {
+            logger.warn(`Admin tried to create user: Username '${username}' or email '${email}' already exists.`);
+            return res.status(400).json({ message: 'کاربری با این نام کاربری یا ایمیل از قبل وجود دارد.' });
+        }
+
+        const newUser = await User.create({
+            username,
+            email,
+            password, // Mongoose pre-save hook will hash this
+            role,
+            balance,
+            score,
+            level
+        });
+
+        logger.info(`Admin ${req.user.username} created new user: ${newUser.username} (${newUser.role}).`);
+        res.status(201).json({
+            _id: newUser._id,
+            username: newUser.username,
+            email: newUser.email,
+            role: newUser.role,
+            balance: newUser.balance,
+            score: newUser.score,
+            level: newUser.level,
+            status: newUser.status,
+        });
+
+    } catch (error) {
+        logger.error(`Server error creating user by admin: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
 
 // @desc    دریافت کاربر بر اساس ID
 // @route   GET /api/admin/users/:id
@@ -88,6 +159,186 @@ const getUserById = asyncHandler(async (req, res) => {
         res.status(404).json({ message: 'کاربر یافت نشد.' });
     }
 });
+
+
+// @desc    Update user by Admin
+// @route   PUT /api/admin/users/:id
+// @access  Private/Admin
+const updateUser = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = updateUserByAdminSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error updating user by admin for ID ${req.params.id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'کاربر یافت نشد.' });
+        }
+
+        // Prevent admin from changing their own role to something other than admin
+        if (req.user._id.toString() === req.params.id && req.body.role && req.body.role !== 'admin') {
+            return res.status(403).json({ message: 'مدیر نمی‌تواند نقش خود را تغییر دهد.' });
+        }
+
+        // Check for duplicate username/email if changed
+        if (req.body.username && req.body.username !== user.username) {
+            const usernameExists = await User.findOne({ username: req.body.username });
+            if (usernameExists && usernameExists._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: 'نام کاربری از قبل وجود دارد.' });
+            }
+        }
+        if (req.body.email && req.body.email !== user.email) {
+            const emailExists = await User.findOne({ email: req.body.email });
+            if (emailExists && emailExists._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: 'ایمیل از قبل وجود دارد.' });
+            }
+        }
+
+        // Update fields that are provided in the request body
+        if (req.body.username !== undefined) user.username = req.body.username;
+        if (req.body.email !== undefined) user.email = req.body.email;
+        if (req.body.role !== undefined) user.role = req.body.role;
+        if (req.body.status !== undefined) user.status = req.body.status;
+        if (req.body.level !== undefined) user.level = req.body.level;
+        // Handle balance and score carefully
+        if (req.body.balance !== undefined) {
+            // You might want to log this balance change in Transactions
+            const oldBalance = user.balance;
+            user.balance = req.body.balance;
+            if (user.balance !== oldBalance) {
+                 await Transaction.create({
+                    user: user._id,
+                    amount: user.balance - oldBalance,
+                    type: 'admin_balance_adjustment',
+                    status: 'completed',
+                    admin: req.user._id,
+                    adminNote: `Balance changed from ${oldBalance} to ${user.balance} by admin.`
+                });
+            }
+        }
+        if (req.body.score !== undefined) {
+            user.score = req.body.score;
+        }
+        if (req.body.password) {
+            user.password = req.body.password; // Mongoose pre-save hook will hash this
+        }
+
+
+        const updatedUser = await user.save();
+
+        logger.info(`Admin ${req.user.username} updated user: ${updatedUser.username} (${updatedUser._id}).`);
+        res.status(200).json({
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            balance: updatedUser.balance,
+            score: updatedUser.score,
+            level: updatedUser.level,
+            status: updatedUser.status,
+        });
+
+    } catch (error) {
+        logger.error(`Server error updating user by admin for ID ${req.params.id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+// @desc    Create a new Toto game
+// @route   POST /api/admin/totos
+// @access  Private/Admin
+const createTotoGame = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = createTotoGameSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error creating Toto game by admin: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    const { name, deadline, matches } = req.body;
+
+    try {
+        const newGame = await TotoGame.create({
+            name,
+            deadline,
+            matches: matches.map(match => ({
+                homeTeam: match.homeTeam,
+                awayTeam: match.awayTeam,
+                matchDate: match.matchDate,
+                // score and winner will be set later
+            })),
+            status: 'open',
+            totalPrizePool: 0,
+        });
+
+        logger.info(`Admin ${req.user.username} created new Toto game: '${newGame.name}' (${newGame._id}).`);
+        res.status(201).json(newGame);
+
+    } catch (error) {
+        logger.error(`Server error creating Toto game by admin: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+// @desc    Set Toto game results
+// @route   PUT /api/admin/totos/:id/results
+// @access  Private/Admin
+const setTotoGameResults = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = setTotoGameResultsSchema.validate({ ...req.body, gameId: req.params.id }, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error setting Toto game results for game ID ${req.params.id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    const { results } = req.body; // gameId is from params
+
+    try {
+        const game = await TotoGame.findById(req.params.id);
+
+        if (!game) {
+            return res.status(404).json({ message: 'بازی یافت نشد.' });
+        }
+
+        if (game.status === 'completed' || game.status === 'cancelled') {
+            return res.status(400).json({ message: 'نتایج این بازی قبلاً ثبت شده یا بازی لغو شده است.' });
+        }
+
+        // Update each match result
+        for (const result of results) {
+            const matchIndex = game.matches.findIndex(m => m._id.toString() === result.matchId);
+            if (matchIndex === -1) {
+                logger.warn(`Match ID ${result.matchId} not found in game ${game._id} while setting results.`);
+                return res.status(404).json({ message: `مسابقه با شناسه ${result.matchId} در این بازی یافت نشد.` });
+            }
+            game.matches[matchIndex].homeScore = result.homeScore;
+            game.matches[matchIndex].awayScore = result.awayScore;
+            game.matches[matchIndex].winner = result.winner;
+        }
+
+        game.status = 'completed'; // Set game status to completed
+        await game.save();
+
+        // Trigger score calculation and prize distribution
+        await totoService.processTotoGameResults(game._id);
+
+        logger.info(`Admin ${req.user.username} set results for Toto game: '${game.name}' (${game._id}).`);
+        res.status(200).json({ message: 'نتایج بازی با موفقیت ثبت و پردازش شد.' });
+
+    } catch (error) {
+        logger.error(`Server error setting Toto game results for game ID ${req.params.id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+
 
 // @desc    به‌روزرسانی پروفایل کاربر توسط ادمین
 // @route   PUT /api/admin/users/:id
@@ -127,6 +378,8 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
         res.status(404).json({ message: 'کاربر یافت نشد.' });
     }
 });
+
+
 
 // @desc    مسدود کردن کاربر
 // @route   PUT /api/admin/users/:id/block
@@ -709,25 +962,190 @@ const getAdminSettings = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    به‌روزرسانی تنظیمات ادمین
+
+// @desc    Update withdrawal request status
+// @route   PUT /api/admin/withdrawals/:id/status
+// @access  Private/Admin
+const updateWithdrawalStatus = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = updateWithdrawalStatusSchema.validate({ ...req.body, withdrawalId: req.params.id }, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error updating withdrawal status for ID ${req.params.id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    const { status, adminNote } = req.body; // withdrawalId is from params
+
+    try {
+        const withdrawal = await WithdrawalRequest.findById(req.params.id).populate('user');
+
+        if (!withdrawal) {
+            return res.status(404).json({ message: 'درخواست برداشت یافت نشد.' });
+        }
+
+        // Prevent status changes if already completed or cancelled
+        if (['completed', 'cancelled'].includes(withdrawal.status)) {
+            return res.status(400).json({ message: `این درخواست برداشت قبلاً با وضعیت '${withdrawal.status}' به پایان رسیده است.` });
+        }
+
+        const oldStatus = withdrawal.status;
+        withdrawal.status = status;
+        withdrawal.adminNote = adminNote || withdrawal.adminNote;
+        await withdrawal.save();
+
+        // If status changes to rejected, refund the user's balance
+        if (status === 'rejected' && oldStatus !== 'rejected') {
+            const user = await User.findById(withdrawal.user._id);
+            if (user) {
+                user.balance += withdrawal.amount;
+                await user.save();
+                await Transaction.create({
+                    user: user._id,
+                    amount: withdrawal.amount,
+                    type: 'withdrawal_rejection_refund',
+                    status: 'completed',
+                    relatedEntity: withdrawal._id,
+                    relatedEntityType: 'WithdrawalRequest',
+                    admin: req.user._id,
+                    adminNote: adminNote || 'Refunded due to withdrawal rejection.'
+                });
+                logger.info(`Refunded ${withdrawal.amount} to user ${user._id} due to rejected withdrawal request ${withdrawal._id}.`);
+            } else {
+                logger.error(`User for rejected withdrawal ${withdrawal._id} not found for refund.`);
+            }
+        }
+        // If status changes to completed, and the balance was not already deducted
+        // Or handle the actual crypto payout logic here
+        // If the balance was already deducted (as implemented in userController.js), no further balance change is needed here.
+
+        logger.info(`Admin ${req.user.username} updated withdrawal request ${withdrawal._id} status from '${oldStatus}' to '${status}'.`);
+        res.status(200).json({ message: `وضعیت درخواست برداشت به ${status} تغییر یافت.`, withdrawal });
+
+    } catch (error) {
+        logger.error(`Server error updating withdrawal status for ID ${req.params.id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+
+// @desc    Update crypto deposit status (Manual Confirmation/Rejection by Admin)
+// @route   PUT /api/admin/deposits/:id/status
+// @access  Private/Admin
+const updateCryptoDepositStatus = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = updateCryptoDepositStatusSchema.validate({ ...req.body, depositId: req.params.id }, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error updating deposit status for ID ${req.params.id}: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
+    }
+
+    const { status, adminNote } = req.body;
+
+    try {
+        const deposit = await CryptoDeposit.findById(req.params.id).populate('user');
+
+        if (!deposit) {
+            return res.status(404).json({ message: 'واریز رمزارز یافت نشد.' });
+        }
+
+        if (deposit.status === 'confirmed' || deposit.status === 'rejected') {
+            return res.status(400).json({ message: `وضعیت این واریز قبلاً به '${deposit.status}' تغییر یافته است.` });
+        }
+
+        const oldStatus = deposit.status;
+        deposit.status = status;
+        deposit.adminNote = adminNote || deposit.adminNote;
+        await deposit.save();
+
+        // If status changes to confirmed and it wasn't already confirmed
+        if (status === 'confirmed' && oldStatus !== 'confirmed') {
+            const user = await User.findById(deposit.user._id);
+            if (user) {
+                user.balance += deposit.amount; // Add deposited amount to user balance
+                await user.save();
+                // Update related transaction status if it exists, or create a new one
+                const transaction = await Transaction.findOne({ relatedEntity: deposit._id, relatedEntityType: 'CryptoDeposit' });
+                if (transaction) {
+                    transaction.status = 'completed';
+                    await transaction.save();
+                } else {
+                    await Transaction.create({
+                        user: user._id,
+                        amount: deposit.amount,
+                        type: 'crypto_deposit',
+                        status: 'completed',
+                        relatedEntity: deposit._id,
+                        relatedEntityType: 'CryptoDeposit',
+                        admin: req.user._id,
+                        adminNote: adminNote || 'Manually confirmed by admin.'
+                    });
+                }
+                logger.info(`User ${user._id} balance increased by ${deposit.amount} for confirmed deposit ${deposit._id}.`);
+            } else {
+                logger.error(`User for confirmed deposit ${deposit._id} not found.`);
+            }
+        } else if (status === 'rejected' && oldStatus !== 'rejected') {
+            // If deposit is rejected, no balance change unless it was already added (which it shouldn't be for pending)
+             await Transaction.create({
+                user: deposit.user._id,
+                amount: 0, // No balance change for rejection
+                type: 'crypto_deposit',
+                status: 'rejected',
+                relatedEntity: deposit._id,
+                relatedEntityType: 'CryptoDeposit',
+                admin: req.user._id,
+                adminNote: adminNote || 'Rejected by admin.'
+            });
+        }
+
+        logger.info(`Admin ${req.user.username} updated crypto deposit ${deposit._id} status from '${oldStatus}' to '${status}'.`);
+        res.status(200).json({ message: `وضعیت واریز به ${status} تغییر یافت.`, deposit });
+
+    } catch (error) {
+        logger.error(`Server error updating crypto deposit status for ID ${req.params.id}: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
+
+// @desc    Update Admin Settings
 // @route   PUT /api/admin/settings
 // @access  Private/Admin
-const updateAdminSettings = asyncHandler(async (req, res) => {
-    const { minDeposit, minWithdrawal } = req.body;
-
-    let settings = await AdminSettings.findOne({});
-    if (settings) {
-        settings.minDeposit = minDeposit !== undefined ? minDeposit : settings.minDeposit;
-        settings.minWithdrawal = minWithdrawal !== undefined ? minWithdrawal : settings.minWithdrawal;
-        const updatedSettings = await settings.save();
-        logger.info(`Admin ${req.user.username} updated admin settings.`);
-        res.json({ message: 'تنظیمات با موفقیت به‌روزرسانی شد.', settings: updatedSettings });
-    } else {
-        const newSettings = await AdminSettings.create({ minDeposit, minWithdrawal });
-        logger.info(`Admin ${req.user.username} created initial admin settings.`);
-        res.status(201).json({ message: 'تنظیمات اولیه با موفقیت ایجاد شد.', settings: newSettings });
+const updateAdminSettings = async (req, res) => {
+    // Step 1: اعتبار سنجی ورودی با استفاده از Joi
+    const { error } = updateAdminSettingsSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+        const errors = error.details.map(err => err.message);
+        logger.warn(`Validation error updating admin settings: ${errors.join(', ')}`);
+        return res.status(400).json({ message: 'خطای اعتبار سنجی', errors });
     }
-});
+
+    try {
+        // Find existing settings or create if not present
+        let settings = await AdminSettings.findOne();
+        if (!settings) {
+            settings = new AdminSettings();
+        }
+
+        // Update fields that are provided
+        if (req.body.minDeposit !== undefined) settings.minDeposit = req.body.minDeposit;
+        if (req.body.minWithdrawal !== undefined) settings.minWithdrawal = req.body.minWithdrawal;
+        if (req.body.referralCommissionPercentage !== undefined) settings.referralCommissionPercentage = req.body.referralCommissionPercentage;
+        // Add other settings fields here as per your AdminSettings model
+
+        await settings.save();
+
+        logger.info(`Admin ${req.user.username} updated admin settings.`);
+        res.status(200).json({ message: 'تنظیمات مدیر با موفقیت به‌روزرسانی شد.', settings });
+
+    } catch (error) {
+        logger.error(`Server error updating admin settings: ${error.message}`);
+        res.status(500).json({ message: 'خطای سرور.', error: error.message });
+    }
+};
+
 
 // @desc    دریافت پیش‌بینی‌های یک کاربر خاص (توسط ادمین)
 // @route   GET /api/admin/users/:id/predictions
