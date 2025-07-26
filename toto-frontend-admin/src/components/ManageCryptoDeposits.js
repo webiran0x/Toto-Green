@@ -1,51 +1,59 @@
 // toto-frontend-admin/src/components/ManageCryptoDeposits.js
 // کامپوننت مدیریت واریزهای ارز دیجیتال برای ادمین
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد برای fetchDeposits
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function ManageCryptoDeposits({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function ManageCryptoDeposits() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [deposits, setDeposits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const { t } = useLanguage();
 
-  useEffect(() => {
-    fetchDeposits();
-  }, [token, API_BASE_URL, t]);
-
-  const fetchDeposits = async () => {
+  // تابع fetchDeposits را داخل useCallback قرار می‌دهیم تا از ایجاد مکرر آن جلوگیری شود
+  const fetchDeposits = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/admin/crypto-deposits`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      setMessage(''); // پیام‌ها هم باید قبل از هر fetch جدید پاک شوند
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/admin/crypto-deposits'); // '/api' از ابتدای مسیر حذف شد
       setDeposits(res.data);
     } catch (err) {
       setError(err.response?.data?.message || t('error_fetching_crypto_deposits_admin'));
+      console.error('Error fetching crypto deposits:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]); // t را به dependency array اضافه کنید
+
+  useEffect(() => {
+    fetchDeposits();
+  }, [fetchDeposits]); // fetchDeposits را به dependency array اضافه کنید
 
   const handleUpdateStatus = async (depositId, newStatus, isProcessed = false, actualAmount = null) => {
     setMessage('');
     setError('');
     try {
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
       await axios.put(
-        `${API_BASE_URL}/admin/crypto-deposits/${depositId}/status`,
+        `/admin/crypto-deposits/${depositId}/status`, // '/api' از ابتدای مسیر حذف شد
         { status: newStatus, isProcessed, actualAmount },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        // نیازی به هدر Authorization نیست
       );
       setMessage(t('crypto_deposit_status_updated_admin'));
       fetchDeposits(); // رفرش لیست
     } catch (err) {
       setError(err.response?.data?.message || t('error_updating_crypto_deposit_status_admin'));
+      console.error('Error updating crypto deposit status:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     }
   };
 

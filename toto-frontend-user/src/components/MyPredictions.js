@@ -2,33 +2,39 @@
 // کامپوننت نمایش پیش‌بینی‌های کاربر با UI بهبود یافته و ریسپانسیو
 // شامل نمایش نتایج درست/غلط و جزئیات جوایز
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function MyPredictions({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function MyPredictions() {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { t } = useLanguage();
 
+  // تابع fetchMyPredictions را داخل useCallback قرار می‌دهیم
+  const fetchMyPredictions = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
+      const res = await axios.get('/users/my-predictions'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+      setPredictions(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching my predictions:', err.response?.data || err.message); // برای اشکال‌زدایی
+    } finally {
+      setLoading(false);
+    }
+  }, [t]); // t به dependency array اضافه شد
+
   useEffect(() => {
-    const fetchMyPredictions = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/users/my-predictions`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setPredictions(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMyPredictions();
-  }, [token, API_BASE_URL, t]);
+  }, [fetchMyPredictions]); // fetchMyPredictions به dependency array اضافه شد
 
   const getPredictionOutcomeText = (outcomeArray) => {
     return outcomeArray.join('/');
@@ -45,33 +51,23 @@ function MyPredictions({ token, API_BASE_URL }) {
   };
 
   const handleClaimPrize = async (gameId, gameName) => {
-    // از window.confirm استفاده نمی‌کنیم، یک مودال سفارشی جایگزین می‌کنیم
-    // در اینجا برای سادگی، فرض می‌کنیم یک کامپوننت مودال برای تایید دارید
-    // یا می‌توانید مستقیماً درخواست را ارسال کنید و پیام موفقیت/خطا را نمایش دهید.
-    // برای این مثال، از یک تایید ساده استفاده می‌کنیم.
     if (window.confirm(t('confirm_claim_prize', { gameName }))) {
       try {
+        // درخواست Axios:
+        // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+        // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
         const res = await axios.post(
-          `${API_BASE_URL}/users/claim-prize/${gameId}`,
+          `/users/claim-prize/${gameId}`, // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
           {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          // نیازی به هدر Authorization نیست
         );
-        alert(res.data.message); // می‌توانید این را به یک مودال زیباتر تغییر دهید
+        alert(res.data.message);
         // رفرش کردن لیست پیش‌بینی‌ها برای به‌روزرسانی وضعیت
-        setLoading(true);
-        setError('');
-        const updatedRes = await axios.get(`${API_BASE_URL}/users/my-predictions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setPredictions(updatedRes.data);
+        // فراخوانی fetchMyPredictions برای رفرش صحیح داده‌ها
+        fetchMyPredictions(); 
       } catch (err) {
-        alert(err.response?.data?.message || t('error_claiming_prize')); // می‌توانید این را به یک مودال زیباتر تغییر دهید
-      } finally {
-        setLoading(false);
+        alert(err.response?.data?.message || t('error_claiming_prize'));
+        console.error('Error claiming prize:', err.response?.data || err.message); // برای اشکال‌زدایی
       }
     }
   };
@@ -103,10 +99,11 @@ function MyPredictions({ token, API_BASE_URL }) {
             }
 
             // بررسی اینکه آیا کاربر برنده شده است
+            // فرض می‌شود prediction.user یک ID است و winners شامل ID کاربران است
             const isWinner = isGameCompleted && prediction.score > 0 &&
-                             (totoGame.winners.first.includes(prediction.user) ||
-                              totoGame.winners.second.includes(prediction.user) ||
-                              totoGame.winners.third.includes(prediction.user));
+                             (totoGame.winners?.first?.includes(prediction.user?._id || prediction.user) || // اضافه شدن user?._id یا prediction.user
+                              totoGame.winners?.second?.includes(prediction.user?._id || prediction.user) ||
+                              totoGame.winners?.third?.includes(prediction.user?._id || prediction.user));
 
             return (
               <div key={prediction._id} className="bg-blue-50 p-6 rounded-xl shadow-lg border border-blue-200 flex flex-col transform transition-transform duration-300 hover:scale-[1.02]">
@@ -138,14 +135,14 @@ function MyPredictions({ token, API_BASE_URL }) {
                 {isGameCompleted && isWinner && (
                     <div className="mt-2 mb-3 bg-yellow-100 p-3 rounded-md border border-yellow-300">
                         <p className="text-yellow-800 font-bold text-md">{t('congratulations_you_won')}</p>
-                        {totoGame.winners.first.includes(prediction.user) && (
-                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes.firstPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('first_place')})</p>
+                        {totoGame.winners?.first?.includes(prediction.user?._id || prediction.user) && (
+                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes?.firstPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('first_place')})</p>
                         )}
-                        {totoGame.winners.second.includes(prediction.user) && (
-                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes.secondPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('second_place')})</p>
+                        {totoGame.winners?.second?.includes(prediction.user?._id || prediction.user) && (
+                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes?.secondPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('second_place')})</p>
                         )}
-                        {totoGame.winners.third.includes(prediction.user) && (
-                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes.thirdPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('third_place')})</p>
+                        {totoGame.winners?.third?.includes(prediction.user?._id || prediction.user) && (
+                            <p className="text-yellow-700 text-sm">{t('prize_amount')}: {totoGame.prizes?.thirdPlace?.toLocaleString('fa-IR')} {t('usdt')} ({t('third_place')})</p>
                         )}
                     </div>
                 )}
@@ -164,16 +161,15 @@ function MyPredictions({ token, API_BASE_URL }) {
                         </span>{' '}
                         <span className="font-bold text-blue-600">{getPredictionOutcomeText(predItem.chosenOutcome)}</span>
                         {actualResult && (
-  <span className="ml-2 text-gray-500">
-    ({t('result_label')}: {actualResult})
-    {correct !== null && (
-      <span className={`ml-1 ${correct ? 'text-green-600' : 'text-red-600'}`}>
-        {correct ? ' ✔' : ' ✖'}
-      </span>
-    )}
-  </span>
-)}
-
+                          <span className="ml-2 text-gray-500">
+                            ({t('result_label')}: {actualResult})
+                            {correct !== null && (
+                              <span className={`ml-1 ${correct ? 'text-green-600' : 'text-red-600'}`}>
+                                {correct ? ' ✔' : ' ✖'}
+                              </span>
+                            )}
+                          </span>
+                        )}
                         {isGameCancelled && actualMatch?.isCancelled && (
                             <span className="ml-2 text-red-500 font-bold">({t('cancelled')})</span>
                         )}

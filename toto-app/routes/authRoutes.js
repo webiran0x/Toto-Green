@@ -1,21 +1,12 @@
 // toto-app/routes/authRoutes.js
-// مسیرهای API برای احراز هویت کاربر (ثبت نام و ورود)
-
 const express = require('express');
-
-// وارد کردن توابع کنترلر صحیح
-const { registerUser, loginUser } = require('../controllers/authController'); // <-- اصلاح شده: authUser به loginUser تغییر یافت
+const { registerUser, loginUser, logoutUser } = require('../controllers/authController'); // اضافه شدن logoutUser
+const { protect } = require('../middleware/authMiddleware'); // اضافه شدن protect برای مسیر خروج
 
 const router = express.Router();
 
-// @route   POST /api/auth/register
-// @desc    ثبت نام کاربر جدید
-// @access  Public
 router.post('/register', registerUser);
-
-// @route   POST /api/auth/login
-// @desc    ورود کاربر
-// @access  Public
-router.post('/login', loginUser); // <-- اصلاح شده: authUser به loginUser تغییر یافت
+router.post('/login', loginUser);
+router.post('/logout', protect, logoutUser); // مسیر خروج، محافظت شده تا فقط کاربران لاگین شده بتوانند خارج شوند
 
 module.exports = router;

@@ -1,36 +1,38 @@
 // toto-frontend-user/src/components/MyTransactions.js
 // کامپوننت جدید برای نمایش تمام تراکنش‌های کاربر
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
-import { useLanguage } from '../contexts/LanguageContext'; // فرض کنید LanguageContext دارید
+import { useLanguage } from '../contexts/LanguageContext';
 
-function MyTransactions({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function MyTransactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { t } = useLanguage();
 
-  useEffect(() => {
-    const fetchMyTransactions = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/users/my-transactions`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setTransactions(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (token) {
-      fetchMyTransactions();
+  // تابع fetchMyTransactions را داخل useCallback قرار می‌دهیم
+  const fetchMyTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/users/my-transactions'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+      setTransactions(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching my transactions:', err.response?.data || err.message); // برای اشکال‌زدایی
+    } finally {
+      setLoading(false);
     }
-  }, [token, API_BASE_URL, t]);
+  }, [t]); // t به dependency array اضافه شد
+
+  useEffect(() => {
+    fetchMyTransactions();
+  }, [fetchMyTransactions]); // fetchMyTransactions به dependency array اضافه شد
 
   const getTransactionTypeTranslation = (type) => {
     switch (type) {
@@ -44,7 +46,7 @@ function MyTransactions({ token, API_BASE_URL }) {
         return t('transaction_type_refund');
       case 'referral_commission':
         return t('transaction_type_referral_commission');
-      case 'withdrawal': // <--- اضافه شده
+      case 'withdrawal':
         return t('transaction_type_withdrawal');
       default:
         return t('unknown');
@@ -65,7 +67,7 @@ function MyTransactions({ token, API_BASE_URL }) {
             <thead className="bg-gray-100 border-b border-gray-200">
               <tr>
                 <th className="py-3 px-4 text-right text-gray-600 font-semibold text-sm">{t('date')}</th>
-                <th className="py-3 px-4 text-right text-gray-600 font-semibold text-sm">{t('amount')} ({t('usdt')})</th> {/* <--- تغییر واحد */}
+                <th className="py-3 px-4 text-right text-gray-600 font-semibold text-sm">{t('amount')} ({t('usdt')})</th>
                 <th className="py-3 px-4 text-right text-gray-600 font-semibold text-sm">{t('type')}</th>
                 <th className="py-3 px-4 text-right text-gray-600 font-semibold text-sm">{t('description')}</th>
               </tr>

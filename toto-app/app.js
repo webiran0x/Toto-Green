@@ -10,6 +10,8 @@ const path = require('path'); // اضافه شده: برای کار با مسی�
 const fs = require('fs'); // اضافه شده: برای کار با فایل‌ها
 const shkeeperWebhookRoutes = require('./routes/shkeeperWebhookRoutes');
 const totoRoutes = require('./routes/totoGameRoutes');
+const cookieParser = require('cookie-parser'); // <--- ADDED: For parsing cookies
+
 
 
 
@@ -32,8 +34,10 @@ const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_USER_URL,
   process.env.FRONTEND_ADMIN_URL,
+  process.env.FRONTEND_LANDING_URL, // <--- اضافه شد: آدرس لندینگ پیج
   'http://localhost:3000',
   'http://localhost:5001',
+  'http://localhost:5173',  // Frontend landing dev URL (Vite default)
   'http://localhost:3001'
 ]; // پورت‌های فرانت‌اند کاربر و ادمین
 
@@ -54,6 +58,8 @@ app.use(cors({
 
 // Middleware ها
 app.use(express.json()); // برای تجزیه درخواست‌های JSON
+app.use(cookieParser()); // <--- ADDED: For parsing cookies from request headers
+
 
 // وارد کردن مسیرهای API
 // مسیرهای API باید با نام فایل‌هایشان در پوشه 'routes' مطابقت داشته باشند
@@ -69,7 +75,6 @@ const supportRoutes = require('./routes/supportRoutes'); // <--- اضافه شد
 
 // تعریف مسیرهای API
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/totos', totoGameRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);

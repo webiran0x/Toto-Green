@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function CreateTicket({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function CreateTicket() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('low');
@@ -21,21 +22,22 @@ function CreateTicket({ token, API_BASE_URL }) {
     setLoading(true);
 
     try {
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
       const res = await axios.post(
-        `${API_BASE_URL}/support/tickets`,
+        '/support/tickets', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         { subject, description, priority },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
-      setMessage(t('ticket_created_success'));
+      setMessage(res.data.message || t('ticket_created_success'));
       setSubject('');
       setDescription('');
       setPriority('low');
     } catch (err) {
       setError(err.response?.data?.message || t('error_creating_ticket'));
+      console.error('Error creating ticket:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
@@ -44,8 +46,8 @@ function CreateTicket({ token, API_BASE_URL }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto mt-10 transform transition-transform duration-300 hover:scale-105">
       <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">{t('create_new_ticket')}</h2>
-      {message && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4 text-center">{message}</div>}
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">{error}</div>}
+      {message && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-md relative mb-4 text-center">{message}</div>}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-4 text-center">{error}</div>}
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

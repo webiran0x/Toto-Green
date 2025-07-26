@@ -1,11 +1,13 @@
 // toto-frontend-admin/src/components/ViewPredictions.js
 // کامپوننت مشاهده پیش‌بینی‌های کاربران
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
-import { useLanguage } from '../contexts/LanguageContext'; // <--- اضافه شده
+import { useLanguage } from '../contexts/LanguageContext';
 
-function ViewPredictions({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function ViewPredictions() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [totoGames, setTotoGames] = useState([]);
   const [selectedGameId, setSelectedGameId] = useState('');
   const [predictions, setPredictions] = useState([]);
@@ -13,27 +15,29 @@ function ViewPredictions({ token, API_BASE_URL }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [gamesLoading, setGamesLoading] = useState(true);
-  const { t } = useLanguage(); // <--- استفاده از هوک زبان
+  const { t } = useLanguage();
 
-  useEffect(() => {
-    const fetchTotoGames = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/admin/totos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setTotoGames(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setGamesLoading(false);
-      }
-    };
-    fetchTotoGames();
-  }, [token, API_BASE_URL, t]);
+  // تابع fetchTotoGames را داخل useCallback قرار می‌دهیم
+  const fetchTotoGames = useCallback(async () => {
+    try {
+      setGamesLoading(true);
+      setError('');
+      setMessage(''); // پیام‌ها هم باید قبل از هر fetch جدید پاک شوند
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/admin/totos'); // '/api' از ابتدای مسیر حذف شد
+      setTotoGames(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching Toto games for ViewPredictions:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
+    } finally {
+      setGamesLoading(false);
+    }
+  }, [t]); // t را به dependency array اضافه کنید
 
-  const fetchPredictions = async () => {
+  // تابع fetchPredictions را داخل useCallback قرار می‌دهیم
+  const fetchPredictions = useCallback(async () => {
     if (!selectedGameId) {
       setPredictions([]);
       return;
@@ -42,25 +46,29 @@ function ViewPredictions({ token, API_BASE_URL }) {
     setMessage('');
     setError('');
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/predictions/${selectedGameId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get(`/admin/predictions/${selectedGameId}`); // '/api' از ابتدای مسیر حذف شد
       setPredictions(res.data);
       if (res.data.length === 0) {
         setMessage(t('no_predictions_found_for_game'));
       }
     } catch (err) {
       setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching predictions for selected game:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedGameId, t]); // selectedGameId و t را به dependency array اضافه کنید
+
+  useEffect(() => {
+    fetchTotoGames();
+  }, [fetchTotoGames]); // fetchTotoGames را به dependency array اضافه کنید
 
   useEffect(() => {
     fetchPredictions();
-  }, [selectedGameId, token, API_BASE_URL, t]);
+  }, [fetchPredictions]); // fetchPredictions را به dependency array اضافه کنید
 
   const getMatchDetails = (matchId) => {
     const selectedGame = totoGames.find(game => game._id === selectedGameId);
@@ -110,6 +118,9 @@ function ViewPredictions({ token, API_BASE_URL }) {
               {predictions.map((prediction) => (
                 <div key={prediction._id} className="bg-gray-50 p-4 rounded-md shadow-sm border border-gray-200">
                   <p className="font-bold text-lg text-blue-700 mb-2">{t('user')}: {prediction.user?.username || t('unknown')}</p>
+                  <p className="text-gray-700 text-sm mb-1">
+                      {t('form_id')}: {prediction.formId || prediction._id}
+                  </p>
                   <p className="text-gray-700 text-sm mb-1">{t('form_price')}: {prediction.price}</p>
                   <p className="text-gray-700 text-sm mb-1">{t('score_earned')}: {prediction.score} ({t('scored')}: {prediction.isScored ? t('yes') : t('no')})</p>
                   <p className="text-gray-700 text-sm mb-2">{t('submission_date')}: {new Date(prediction.createdAt).toLocaleString('fa-IR')}</p>

@@ -40,6 +40,6 @@ router.post('/predict', protect, submitPrediction);
 router.post('/claim-prize/:gameId', protect, claimPrize);
 router.get('/crypto-deposits/:id', protect, getSingleCryptoDeposit);
 router.get('/games/expired', protect, getExpiredGames);
-router.get('/games/:gameId/download', protect, downloadGameExcel);
+// router.get('/games/:gameId/download', protect, downloadGameExcel);
 
 module.exports = router;

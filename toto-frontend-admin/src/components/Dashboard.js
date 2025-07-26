@@ -1,11 +1,11 @@
-// toto-frontend-admin/src/components/Dashboard.js
-// کامپوننت داشبورد ادمین
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function Dashboard({ token, API_BASE_URL }) {
+// نیازی نیست API_BASE_URL به عنوان پراپ پاس داده شود،
+// زیرا axios.defaults.baseURL در App.js به صورت سراسری تنظیم شده است.
+// اگرچه اگر پاس داده شود مشکلی ایجاد نمی‌کند، اما دیگر ضروری نیست.
+function Dashboard() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [adminInfo, setAdminInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,25 +14,25 @@ function Dashboard({ token, API_BASE_URL }) {
   useEffect(() => {
     const fetchAdminInfo = async () => {
       try {
-        // **اصلاح: تغییر مسیر API از /users/profile به /admin/profile**
-        const res = await axios.get(`${API_BASE_URL}/admin/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setAdminInfo(res.data); // پاسخ بک‌اند برای admin/profile مستقیماً شامل اطلاعات ادمین است
+        // Axios به طور خودکار baseURL (که در App.js تنظیم شده) را اضافه می‌کند.
+        // همچنین، به خاطر axios.defaults.withCredentials = true، کوکی احراز هویت را نیز ارسال می‌کند.
+        // بنابراین، نیازی به تعیین دستی هدر Authorization یا baseURL در اینجا نیست.
+        const res = await axios.get('/admin/profile'); 
+        setAdminInfo(res.data);
       } catch (err) {
-        // مدیریت خطاها در صورت عدم موفقیت درخواست
+        // مدیریت خطاها در صورت عدم موفقیت درخواست (مثلاً 401 Unauthorized)
+        // این می‌تواند به این معنی باشد که کوکی معتبر نیست یا منقضی شده است.
         setError(err.response?.data?.message || t('error_fetching_data'));
+        console.error('Failed to fetch admin profile:', err.response?.data || err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) {
-      fetchAdminInfo();
-    }
-  }, [token, API_BASE_URL, t]); // t را به dependency array اضافه کنید
+    // درخواست اطلاعات ادمین را به محض بارگذاری کامپوننت ارسال می‌کنیم.
+    // نیازی به بررسی 'token' نیست، چون مدیریت احراز هویت بر عهده کوکی‌هاست.
+    fetchAdminInfo();
+  }, [t]); // 't' به عنوان تنها وابستگی باقی می‌ماند.
 
   if (loading) return <div className="text-center py-8">{t('loading')}</div>;
   if (error) return <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">{error}</div>;

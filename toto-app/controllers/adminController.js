@@ -16,6 +16,10 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 
+// --- اصلاح شده: فقط processTotoGameResults و handleGameCancellationAndRefunds از totoService ایمپورت می‌شوند ---
+// rewardWinners دیگر از totoRewardService.js ایمپورت نمی‌شود، زیرا آن تابع تکراری است.
+const { processTotoGameResults, handleGameCancellationAndRefunds } = require('../services/totoService');
+
 // @desc    دریافت پروفایل ادمین
 // @route   GET /api/admin/profile
 // @access  Private/Admin
@@ -107,7 +111,7 @@ const updateUserByAdmin = asyncHandler(async (req, res) => {
         }
 
         const updatedUser = await user.save();
-        logger.info(`Admin ${req.user.username} updated user ${updatedUser.username} (ID: ${updatedUser._id}).`);
+        logger.info(`${req.user ? req.user.username : 'Admin'} updated user ${updatedUser.username} (ID: ${updatedUser._id}).`);
 
         res.json({
             _id: updatedUser._id,
@@ -132,7 +136,7 @@ const blockUser = asyncHandler(async (req, res) => {
     if (user) {
         user.status = 'blocked';
         await user.save();
-        logger.warn(`Admin ${req.user.username} blocked user ${user.username} (ID: ${user._id}).`);
+        logger.warn(`${req.user ? req.user.username : 'Admin'} blocked user ${user.username} (ID: ${user._id}).`);
         res.json({ message: 'کاربر با موفقیت مسدود شد.' });
     } else {
         res.status(404).json({ message: 'کاربر یافت نشد.' });
@@ -147,7 +151,7 @@ const activateUser = asyncHandler(async (req, res) => {
     if (user) {
         user.status = 'active';
         await user.save();
-        logger.info(`Admin ${req.user.username} activated user ${user.username} (ID: ${user._id}).`);
+        logger.info(`${req.user ? req.user.username : 'Admin'} activated user ${user.username} (ID: ${user._id}).`);
         res.json({ message: 'کاربر با موفقیت فعال شد.' });
     } else {
         res.status(404).json({ message: 'کاربر یافت نشد.' });
@@ -197,7 +201,7 @@ const getAllTransactions = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/logs
 // @access  Private/Admin
 const getSystemLogs = asyncHandler(async (req, res) => {
-    const logFilePath = path.join(__dirname, '../logs/combined.log'); // مسیر فایل لاگ
+    const logFilePath = path.join(__dirname, '../logs/combined.log');
     fs.readFile(logFilePath, 'utf8', (err, data) => {
         if (err) {
             logger.error(`Error reading log file: ${err.message}`);
@@ -237,19 +241,16 @@ const getUsersByAccessLevel = asyncHandler(async (req, res) => {
 // @desc    ایجاد یک بازی Toto جدید (createGame)
 // @route   POST /api/admin/games/create
 // @access  Private/Admin
-const createGame = asyncHandler(async (req, res) => { // نام تابع در اینجا createGame است
+const createGame = asyncHandler(async (req, res) => {
     const { name, deadline, matches } = req.body;
 
-    // <--- اضافه شد: لاگ کردن req.body برای اشکال‌زدایی
     logger.info('Received request body for createGame:', req.body);
 
-    // اعتبارسنجی اولیه (این اعتبارسنجی‌ها قبل از Mongoose اجرا می‌شوند)
     if (!name || !deadline || !matches || !Array.isArray(matches) || matches.length !== 15) {
         logger.warn(`Validation failed for createGame: Missing name, deadline, or 15 matches. Received: ${JSON.stringify(req.body)}`);
         return res.status(400).json({ message: 'لطفاً نام، مهلت و دقیقاً ۱۵ بازی را وارد کنید.' });
     }
 
-    // اعتبارسنجی جزئیات هر بازی
     for (const match of matches) {
         if (!match.homeTeam || !match.awayTeam || !match.date) {
             logger.warn(`Validation failed for createGame: Missing homeTeam, awayTeam, or date in a match. Received match: ${JSON.stringify(match)}`);
@@ -257,12 +258,18 @@ const createGame = asyncHandler(async (req, res) => { // نام تابع در ا
         }
     }
 
+    // بررسی نام تکراری
+    const gameExists = await TotoGame.findOne({ name });
+    if (gameExists) {
+        return res.status(400).json({ message: 'بازی Toto با این نام قبلاً ایجاد شده است.' });
+    }
+
     try {
         const newTotoGame = await TotoGame.create({
             name,
             deadline,
             matches,
-            status: 'open', // وضعیت پیش‌فرض
+            status: 'open',
             totalPot: 0,
             commissionAmount: 0,
             prizePool: 0,
@@ -270,15 +277,14 @@ const createGame = asyncHandler(async (req, res) => { // نام تابع در ا
             winners: { first: [], second: [], third: [] }
         });
 
-        logger.info(`Admin ${req.user.username} created a new Toto game: ${newTotoGame.name} (ID: ${newTotoGame._id}).`);
+        logger.info(`${req.user ? req.user.username : 'Admin'} created a new Toto game: ${newTotoGame.name} (ID: ${newTotoGame._id}).`);
         res.status(201).json({ message: 'بازی Toto با موفقیت ایجاد شد.', game: newTotoGame });
 
     } catch (error) {
-        // <--- اضافه شد: لاگ کردن جزئیات خطای Mongoose Validation Error
         if (error.name === 'ValidationError') {
             const errors = Object.values(error.errors).map(err => err.message);
             logger.error(`Mongoose Validation Error during createGame: ${errors.join(', ')}. Request body: ${JSON.stringify(req.body)}`);
-            return res.status(400).json({ message: errors.join(', ') }); // ارسال پیام خطای دقیق Mongoose
+            return res.status(400).json({ message: errors.join(', ') });
         }
         logger.error(`Error creating Toto game: ${error.message}. Stack: ${error.stack}. Request body: ${JSON.stringify(req.body)}`);
         res.status(500).json({ message: 'خطا در ایجاد بازی Toto.' });
@@ -295,17 +301,11 @@ const getAllGames = asyncHandler(async (req, res) => {
 
 // @desc    ثبت نتیجه نهایی یک یا چند بازی در یک مسابقه Toto
 // @route   PUT /api/admin/games/set-results/:id
-
-
-// @desc    ثبت نتیجه نهایی یک یا چند بازی در یک مسابقه Toto
-// @route   PUT /api/admin/games/set-results/:id
 // @access  Private/Admin
-
-const { rewardWinners } = require('../services/totoRewardService');
-
 const setGameResults = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { results } = req.body;
+  console.log(results); // نتایج ارسالی از فرانت‌اند
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'شناسه بازی Toto نامعتبر است.' });
@@ -325,7 +325,7 @@ const setGameResults = asyncHandler(async (req, res) => {
     const matchIndex = totoGame.matches.findIndex((m) => m._id.toString() === result.matchId);
     if (matchIndex !== -1 && ['1', 'X', '2'].includes(result.result)) {
       totoGame.matches[matchIndex].result = result.result;
-      totoGame.matches[matchIndex].isClosed = true;
+      totoGame.matches[matchIndex].isClosed = true; // نشان می‌دهد که نتیجه این بازی ثبت شده است
       updatedAnyMatch = true;
     }
   });
@@ -334,26 +334,41 @@ const setGameResults = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'هیچ بازی معتبری برای ثبت نتیجه یافت نشد.' });
   }
 
-  await totoGame.save();
+  await totoGame.save(); // نتایج بازی را ذخیره کنید
 
-  const allMatchesClosed = totoGame.matches.every((match) => match.result && match.isClosed);
+  // --- اصلاح شده: لاگ برای اشکال‌زدایی بیشتر و مدیریت وضعیت ---
+  const matchesWithoutResultCount = totoGame.matches.filter(m => !(m.result && m.isClosed)).length;
+  logger.info(`Toto game ${totoGame.name} (ID: ${totoGame._id}) updated. ${matchesWithoutResultCount} matches still without result.`);
 
-  if (!allMatchesClosed) {
+  const allMatchesHaveResult = totoGame.matches.every((match) => match.result && match.isClosed);
+
+  if (!allMatchesHaveResult) { // تغییر نام allMatchesClosed به allMatchesHaveResult برای وضوح
+    // اگر همه بازی‌ها نتیجه ندارند (یعنی هنوز ناقص است)، وضعیت بازی را به 'closed' تنظیم می‌کند و ادامه نمی‌دهد
+    // این بازی تا زمانی که همه نتایج ثبت نشوند، در وضعیت 'closed' باقی می‌ماند.
+    totoGame.status = 'closed'; // اطمینان از اینکه وضعیت 'closed' است اگر قبلاً 'open' بوده
+    await totoGame.save();
     return res.json({
       status: 'partial',
-      message: 'نتایج ارسال شده ثبت شدند. هنوز برخی بازی‌ها نتیجه ندارند.',
+      message: 'نتایج ارسال شده ثبت شدند. هنوز برخی بازی‌ها نتیجه ندارند. بازی در وضعیت "بسته" باقی می‌ماند.',
       totoGame,
     });
   }
 
-  // ✅ اجرای منطق امتیازدهی و توزیع جوایز
-  const rewardResult = await rewardWinners(totoGame);
+  // اگر همه بازی‌ها نتیجه داشتند، اینجا منطق امتیازدهی و توزیع جوایز اجرا می‌شود
+  // --- اصلاح شده: فراخوانی processTotoGameResults از totoService.js ---
+  const processResult = await processTotoGameResults(totoGame); 
 
-  logger.info(`Admin ${req.user.username} set results and rewarded for Toto game: ${totoGame.name}`);
-
-  return res.json(rewardResult);
+  if (processResult.success) { // از processResult.status === 'complete' به processResult.success تغییر یافت
+      logger.info(`${req.user ? req.user.username : 'Admin'} set results and successfully processed scores/rewards for Toto game: ${totoGame.name}. Game status: COMPLETED.`);
+      // --- اصلاح شده: اطمینان از تغییر وضعیت به completed و بازگرداندن آبجکت به‌روز شده ---
+      // processTotoGameResults خودش وضعیت را به completed تغییر داده و ذخیره می‌کند.
+      // بنابراین، فقط totoGame به‌روز شده را از processResult.totoGame برمی‌گردانیم.
+      return res.json({ message: 'نتایج بازی ثبت و جوایز با موفقیت توزیع شد. بازی به "تکمیل شده" تغییر یافت.', totoGame: processResult.totoGame, processResult });
+  } else {
+      logger.error(`${req.user ? req.user.username : 'Admin'} set results for Toto game: ${totoGame.name}, but an error occurred during processing: ${processResult.message}. Game status remains ${totoGame.status}.`);
+      return res.status(500).json({ message: `نتایج بازی ثبت شد اما در پردازش جوایز خطا رخ داد: ${processResult.message}. بازی در وضعیت "${totoGame.status}" باقی می‌ماند.`, totoGame, processResult });
+  }
 });
-
 
 
 // @desc    دریافت پیش‌بینی‌های یک بازی Toto خاص
@@ -392,16 +407,20 @@ const closeTotoGameManually = asyncHandler(async (req, res) => {
     if (totoGame.status === 'closed') {
         return res.status(400).json({ message: 'بازی Toto قبلاً بسته شده است.' });
     }
-
-    totoGame.status = 'closed';
-    await totoGame.save();
-    logger.info(`Admin ${req.user.username} manually closed Toto game: ${totoGame.name} (ID: ${totoGame._id}).`);
-    res.json({ message: 'بازی Toto با موفقیت بسته شد.', totoGame });
+    // اگر بازی باز باشد، باید ابتدا بسته شود.
+    if (totoGame.status === 'open') { // Only allow closing if it's open
+        totoGame.status = 'closed';
+        await totoGame.save();
+        logger.info(`${req.user ? req.user.username : 'Admin'} manually closed Toto game: ${totoGame.name} (ID: ${totoGame._id}).`);
+        res.json({ message: 'بازی Toto با موفقیت بسته شد.', totoGame });
+    } else {
+        res.status(400).json({ message: 'بازی در وضعیت مناسب برای بسته شدن دستی نیست.' });
+    }
 });
 
 // @desc    دانلود پیش‌بینی‌های یک بازی Toto
 // @route   GET /api/admin/download-predictions/:totoGameId
-// @access  Private/Admin
+// @access  Public (بعد از انتقال مسیر در adminRoutes.js)
 const downloadPredictions = asyncHandler(async (req, res) => {
     const { totoGameId } = req.params;
 
@@ -416,14 +435,12 @@ const downloadPredictions = asyncHandler(async (req, res) => {
 
     const predictions = await Prediction.find({ totoGame: totoGameId }).populate('user', 'username');
 
-    // TODO: پیاده‌سازی تولید فایل CSV/Excel
-    // این بخش نیاز به کتابخانه‌ای مانند 'exceljs' یا 'csv-parser' دارد.
-    // به دلیل پیچیدگی تولید فایل در اینجا، این قسمت به عنوان یک TODO باقی می‌ماند.
-    // مثال ساده برای CSV:
     let csvContent = "User,Match ID,Chosen Outcome,Price,Score\n";
     predictions.forEach(p => {
         p.predictions.forEach(matchPred => {
-            csvContent += `${p.user.username},${matchPred.matchId},"${matchPred.chosenOutcome.join(',')}",${p.price},${p.score}\n`;
+            const username = p.user ? p.user.username : 'UnknownUser';
+            const chosenOutcome = Array.isArray(matchPred.chosenOutcome) ? matchPred.chosenOutcome.join(',') : '';
+            csvContent += `${username},${matchPred.matchId},"${chosenOutcome}",${p.price},${p.score}\n`;
         });
     });
 
@@ -431,7 +448,8 @@ const downloadPredictions = asyncHandler(async (req, res) => {
     res.attachment(`${game.name}-predictions.csv`);
     res.send(csvContent);
 
-    logger.info(`Admin ${req.user.username} downloaded predictions for Toto game: ${game.name} (ID: ${game._id}).`);
+    const downloaderUsername = req.user ? req.user.username : 'Public/Unknown';
+    logger.info(`${downloaderUsername} downloaded predictions for Toto game: ${game.name} (ID: ${game._id}).`);
 });
 
 // @desc    لغو بازی Toto
@@ -454,14 +472,15 @@ const cancelTotoGame = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: 'بازی Toto قبلاً لغو شده است.' });
     }
 
-    totoGame.status = 'cancelled';
-    // TODO: منطق بازپرداخت پول به کاربرانی که در این بازی پیش‌بینی کرده‌اند
-    // این بخش باید تمام پیش‌بینی‌های مرتبط با این بازی را پیدا کرده و مبلغ آن‌ها را به کاربران بازگرداند.
-    // برای سادگی، فعلاً فقط وضعیت را تغییر می‌دهیم.
-    await totoGame.save();
+    const refundResult = await handleGameCancellationAndRefunds(totoGameId);
 
-    logger.warn(`Admin ${req.user.username} cancelled Toto game: ${totoGame.name} (ID: ${totoGame._id}). Refund logic needs to be implemented.`);
-    res.json({ message: 'بازی Toto با موفقیت لغو شد. (بازپرداخت‌ها باید پیاده‌سازی شوند).', totoGame });
+    if (refundResult.success) {
+        logger.warn(`${req.user ? req.user.username : 'Admin'} cancelled Toto game: ${totoGame.name} (ID: ${totoGame._id}) and refunds processed.`);
+        res.json({ message: 'بازی Toto با موفقیت لغو شد و مبالغ بازپرداخت شدند.', totoGame });
+    } else {
+        logger.error(`Error cancelling game ${totoGameId} and processing refunds: ${refundResult.message}`);
+        res.status(500).json({ message: `خطا در لغو بازی و بازپرداخت مبالغ: ${refundResult.message}` });
+    }
 });
 
 
@@ -477,7 +496,7 @@ const getCryptoDeposits = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/withdrawals
 // @access  Private/Admin
 const getWithdrawalRequests = asyncHandler(async (req, res) => {
-    const { status } = req.query; // می‌توانید با /api/admin/withdrawals?status=pending فیلتر کنید
+    const { status } = req.query;
     let query = {};
     if (status) {
         query.status = status;
@@ -486,7 +505,7 @@ const getWithdrawalRequests = asyncHandler(async (req, res) => {
         .populate('user', 'username email balance')
         .populate('processedBy', 'username')
         .sort({ createdAt: -1 });
-    logger.info(`Admin fetched withdrawal requests. Filtered by status: ${status || 'None'}. Found ${requests.length} requests.`);
+    logger.info(`${req.user ? req.user.username : 'Admin'} fetched withdrawal requests. Filtered by status: ${status || 'None'}. Found ${requests.length} requests.`);
     res.json(requests);
 });
 
@@ -496,8 +515,8 @@ const getWithdrawalRequests = asyncHandler(async (req, res) => {
 const getPendingWithdrawalRequests = asyncHandler(async (req, res) => {
     const requests = await Withdrawal.find({ status: 'pending' })
         .populate('user', 'username email balance')
-        .sort({ createdAt: 1 }); // قدیمی‌ترین‌ها ابتدا
-    logger.info(`Admin fetched pending withdrawal requests. Found ${requests.length} requests.`);
+        .sort({ createdAt: 1 });
+    logger.info(`${req.user ? req.user.username : 'Admin'} fetched pending withdrawal requests. Found ${requests.length} requests.`);
     res.json(requests);
 });
 
@@ -507,7 +526,7 @@ const getPendingWithdrawalRequests = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const processWithdrawal = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { action, adminNotes } = req.body; // 'approve' or 'reject'
+    const { action, adminNotes } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: 'شناسه درخواست برداشت نامعتبر است.' });
@@ -529,23 +548,18 @@ const processWithdrawal = asyncHandler(async (req, res) => {
         request.processedAt = new Date();
         request.adminNotes = adminNotes || 'Approved by admin.';
 
-        // TODO: در اینجا باید منطق واقعی انتقال وجه (مثلاً با SHKeeper Payout API) پیاده‌سازی شود.
-        // فعلاً فقط وضعیت را در دیتابیس تغییر می‌دهیم.
-        // اگر انتقال وجه واقعی ناموفق بود، باید وضعیت را به 'failed' برگردانید و مبلغ را به کاربر بازگردانید.
-
-        // ثبت تراکنش برداشت
         const transaction = await Transaction.create({
             user: request.user._id,
-            amount: -request.amount, // مبلغ منفی برای برداشت
+            amount: -request.amount,
             type: 'withdrawal',
-            method: 'manual', // یا 'crypto' اگر از SHKeeper استفاده می‌کنید
-            status: 'completed', // یا 'processing' تا زمان تایید SHKeeper
+            method: 'manual',
+            status: 'completed',
             description: `برداشت ${request.amount} USDT به آدرس ${request.walletAddress}. تأیید شده توسط ادمین.`,
             relatedEntity: request._id,
             relatedEntityType: 'WithdrawalRequest'
         });
 
-        logger.info(`Admin ${req.user.username} approved withdrawal request ${id} for user ${request.user.username}.`);
+        logger.info(`${req.user ? req.user.username : 'Admin'} approved withdrawal request ${id} for user ${request.user.username}.`);
         res.json({ message: 'درخواست برداشت با موفقیت تأیید شد.', request });
 
     } else if (action === 'reject') {
@@ -554,16 +568,14 @@ const processWithdrawal = asyncHandler(async (req, res) => {
         request.processedAt = new Date();
         request.adminNotes = adminNotes || 'Rejected by admin.';
 
-        // بازگرداندن مبلغ به موجودی کاربر
         const user = await User.findById(request.user._id);
         if (user) {
             user.balance += request.amount;
             await user.save();
 
-            // ثبت تراکنش بازپرداخت
             await Transaction.create({
                 user: user._id,
-                amount: request.amount,
+                amount: request.amount, // Changed from withdrawal.amount to request.amount
                 type: 'refund',
                 method: 'system',
                 status: 'completed',
@@ -571,7 +583,7 @@ const processWithdrawal = asyncHandler(async (req, res) => {
                 relatedEntity: request._id,
                 relatedEntityType: 'WithdrawalRequest'
             });
-            logger.info(`Admin ${req.user.username} rejected withdrawal request ${id} and refunded ${withdrawal.amount} to user ${user.username}.`);
+            logger.info(`Admin ${req.user.username} rejected withdrawal request ${id} and refunded ${request.amount} to user ${user.username}.`);
         } else {
             logger.warn(`Rejected withdrawal ${id} but user not found for refund.`);
         }
@@ -602,29 +614,18 @@ const approveWithdrawalRequest = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: `درخواست برداشت قبلاً ${withdrawal.status} شده است.` });
     }
 
-    // به‌روزرسانی وضعیت درخواست برداشت
     withdrawal.status = 'approved';
     withdrawal.processedBy = req.user._id;
     withdrawal.processedAt = new Date();
     withdrawal.adminNotes = adminNotes || 'تایید شده توسط ادمین.';
     await withdrawal.save();
 
-    // کسر مبلغ از موجودی کاربر (اگر هنوز کسر نشده باشد)
-    // این منطق باید با دقت بررسی شود که آیا مبلغ قبلاً هنگام درخواست کسر شده یا خیر.
-    // فرض بر این است که مبلغ هنگام درخواست کسر شده و اینجا فقط وضعیت نهایی می‌شود.
-    // اگر مبلغ هنگام درخواست کسر نشده، باید اینجا کسر شود.
-
-    // TODO: فراخوانی API سرویس پرداخت (مثل SHKeeper) برای انجام Payout واقعی
-    // اگر Payout موفق بود، وضعیت تراکنش را 'completed' کنید.
-    // اگر ناموفق بود، وضعیت را 'failed' و مبلغ را به کاربر بازگردانید.
-
-    // ثبت تراکنش در سیستم
     const transaction = await Transaction.create({
         user: withdrawal.user,
-        amount: -withdrawal.amount, // مبلغ منفی برای برداشت
+        amount: -withdrawal.amount,
         type: 'withdrawal',
-        method: 'crypto', // یا 'manual' بسته به روش واقعی
-        status: 'processing', // تا زمانی که SHKeeper تایید کند
+        method: 'crypto',
+        status: 'processing',
         description: `درخواست برداشت ${withdrawal.amount} USDT به آدرس ${withdrawal.walletAddress} در شبکه ${withdrawal.network}.`,
         relatedEntity: withdrawal._id,
         relatedEntityType: 'WithdrawalRequest'
@@ -657,27 +658,24 @@ const rejectWithdrawalRequest = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: `درخواست برداشت قبلاً ${withdrawal.status} شده است.` });
     }
 
-    // به‌روزرسانی وضعیت درخواست برداشت
     withdrawal.status = 'rejected';
     withdrawal.processedBy = req.user._id;
     withdrawal.processedAt = new Date();
     withdrawal.adminNotes = adminNotes;
     await withdrawal.save();
 
-    // بازگرداندن مبلغ به موجودی کاربر
     const user = await User.findById(withdrawal.user);
     if (user) {
         user.balance += withdrawal.amount;
         await user.save();
 
-        // ثبت تراکنش بازپرداخت
         await Transaction.create({
             user: user._id,
             amount: withdrawal.amount,
             type: 'refund',
             method: 'system',
             status: 'completed',
-            description: `بازپرداخت مبلغ ${withdrawal.amount} USDT به دلیل رد درخواست برداشت. دلیل: ${adminNotes}`,
+            description: `بازپرداخت مبلغ ${withdrawal.amount} USDT به دلیل رد درخواست برداشت به آدرس ${withdrawal.walletAddress}. دلیل: ${adminNotes}`,
             relatedEntity: withdrawal._id,
             relatedEntityType: 'WithdrawalRequest'
         });
@@ -694,8 +692,6 @@ const rejectWithdrawalRequest = asyncHandler(async (req, res) => {
 // @route   POST /api/admin/external-sync
 // @access  Private/Admin
 const externalApiSync = asyncHandler(async (req, res) => {
-    // این تابع باید منطق فراخوانی سرویس همگام‌سازی را داشته باشد
-    // فعلاً به عنوان یک placeholder است.
     logger.info(`Admin ${req.user.username} initiated external API sync.`);
     res.status(200).json({ message: 'همگام‌سازی با API خارجی آغاز شد (پیاده‌سازی در دست اقدام).' });
 });
@@ -704,12 +700,11 @@ const externalApiSync = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/settings
 // @access  Private/Admin
 const getAdminSettings = asyncHandler(async (req, res) => {
-    const settings = await AdminSettings.findOne({}); // فرض بر این است که فقط یک سند تنظیمات وجود دارد
+    const settings = await AdminSettings.findOne({});
     if (settings) {
         res.json(settings);
     } else {
-        // اگر تنظیماتی وجود نداشت، یک مقدار پیش‌فرض برگردانید یا ایجاد کنید
-        const defaultSettings = await AdminSettings.create({}); // ایجاد تنظیمات پیش‌فرض
+        const defaultSettings = await AdminSettings.create({});
         res.json(defaultSettings);
     }
 });
@@ -724,12 +719,10 @@ const updateAdminSettings = asyncHandler(async (req, res) => {
     if (settings) {
         settings.minDeposit = minDeposit !== undefined ? minDeposit : settings.minDeposit;
         settings.minWithdrawal = minWithdrawal !== undefined ? minWithdrawal : settings.minWithdrawal;
-        // سایر تنظیمات را اینجا اضافه کنید
         const updatedSettings = await settings.save();
         logger.info(`Admin ${req.user.username} updated admin settings.`);
         res.json({ message: 'تنظیمات با موفقیت به‌روزرسانی شد.', settings: updatedSettings });
     } else {
-        // اگر سندی وجود نداشت، یکی جدید ایجاد کنید
         const newSettings = await AdminSettings.create({ minDeposit, minWithdrawal });
         logger.info(`Admin ${req.user.username} created initial admin settings.`);
         res.status(201).json({ message: 'تنظیمات اولیه با موفقیت ایجاد شد.', settings: newSettings });
@@ -770,7 +763,7 @@ const viewGamePredictions = asyncHandler(async (req, res) => {
         }
 
         const predictions = await Prediction.find({ totoGame: id })
-            .populate('user', 'username email') // اطلاعات کاربر را نیز بارگذاری کنید
+            .populate('user', 'username email')
             .sort({ createdAt: -1 });
 
         logger.info(`Admin ${req.user.username} viewed predictions for Toto game: ${totoGame.name} (ID: ${totoGame._id}). Found ${predictions.length} predictions.`);
@@ -798,9 +791,9 @@ module.exports = {
     getUsersByAccessLevel,
     // --- توابع مربوط به بازی‌ها ---
     getAllGames,
-    createGame, // <--- نام تابع به createGame تغییر یافت
+    createGame,
     setGameResults,
-    viewGamePredictions, // <--- اضافه شد: تابع viewGamePredictions
+    viewGamePredictions,
     // --- توابع مدیریت توتو بازی‌ها ---
     getPredictionsForTotoGame,
     closeTotoGameManually,

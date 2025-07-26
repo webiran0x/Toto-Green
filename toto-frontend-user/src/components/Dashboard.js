@@ -3,10 +3,11 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLanguage } from '../contexts/LanguageContext'; // فرض کنید LanguageContext دارید
-import ExpiredGames from './ExpiredGames';
+import { useLanguage } from '../contexts/LanguageContext';
+import ExpiredGames from './ExpiredGames'; // فرض کنید این کامپوننت هم اصلاح شده است
 
-function Dashboard({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function Dashboard() {
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,11 +18,11 @@ function Dashboard({ token, API_BASE_URL }) {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/users/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // درخواست Axios:
+        // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+        // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+        // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
+        const res = await axios.get('/users/profile'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         setUserInfo(res.data);
         // ساخت لینک ارجاع
         if (res.data.username) {
@@ -30,15 +31,16 @@ function Dashboard({ token, API_BASE_URL }) {
         }
       } catch (err) {
         setError(err.response?.data?.message || t('error_fetching_user_info'));
+        console.error('Error fetching user info:', err.response?.data || err.message); // برای اشکال‌زدایی
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) {
-      fetchUserInfo();
-    }
-  }, [token, API_BASE_URL, t]);
+    // دیگر نیازی به چک کردن 'token' نیست، چون احراز هویت با کوکی‌ها مدیریت می‌شود.
+    // اگر کاربر لاگین نباشد، درخواست 401 می‌دهد و App.js او را به صفحه لاگین هدایت می‌کند.
+    fetchUserInfo();
+  }, [t]); // t به dependency array اضافه شد
 
   const copyToClipboard = () => {
     if (referralLink) {
@@ -83,7 +85,7 @@ function Dashboard({ token, API_BASE_URL }) {
         {/* Card: Account Balance */}
         <div className="bg-purple-50 p-5 rounded-xl shadow-lg border border-purple-200 flex flex-col items-center justify-center transform transition-transform duration-300 hover:scale-105">
           <h3 className="text-xl font-semibold text-purple-800 mb-2">{t('account_balance')}:</h3>
-          <p className="text-gray-700 text-2xl font-bold">{userInfo.balance?.toLocaleString('fa-IR') || 0} {t('usdt')}</p> {/* <--- تغییر واحد */}
+          <p className="text-gray-700 text-2xl font-bold">{userInfo.balance?.toLocaleString('fa-IR') || 0} {t('usdt')}</p>
         </div>
       </div>
 

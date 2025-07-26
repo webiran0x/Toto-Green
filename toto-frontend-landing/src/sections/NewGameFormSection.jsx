@@ -1,5 +1,5 @@
 // toto-frontend-landing/src/sections/NewGameFormSection.js
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 
 // این کامپوننت فرم پیش‌بینی برای بازی جدید را نمایش می‌دهد.
 // داده‌های بازی‌ها از طریق 'activeGame' به عنوان یک prop به آن ارسال می‌شوند.
@@ -10,7 +10,7 @@ function NewGameFormSection({ activeGame }) { // Changed prop name to activeGame
 
   const [predictions, setPredictions] = useState(
     newGameMatches.map((match) => ({
-      matchId: match._id || match.id, // Use _id for real data, id for mock
+      matchId: match._id, // Use _id directly as it's from MongoDB
       chosenOutcome: [], // 1, X, 2
     }))
   );
@@ -20,7 +20,7 @@ function NewGameFormSection({ activeGame }) { // Changed prop name to activeGame
   useEffect(() => {
     setPredictions(
       newGameMatches.map((match) => ({
-        matchId: match._id || match.id,
+        matchId: match._id, // Use _id directly
         chosenOutcome: [],
       }))
     );
@@ -83,7 +83,7 @@ function NewGameFormSection({ activeGame }) { // Changed prop name to activeGame
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {newGameMatches.map((match) => (
-            <div key={match._id || match.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm"> {/* Use _id for real data */}
+            <div key={match._id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm"> {/* Use _id for real data */}
               <div className="flex justify-between items-center mb-3">
                 <span className="font-semibold text-gray-800">{match.homeTeam}</span> {/* Use homeTeam */}
                 <span className="text-gray-600"> - </span>
@@ -94,7 +94,7 @@ function NewGameFormSection({ activeGame }) { // Changed prop name to activeGame
                   <label
                     key={outcome}
                     className={`flex items-center justify-center w-1/3 py-2 rounded-md cursor-pointer transition-colors duration-200
-                      ${predictions.find(p => p.matchId === (match._id || match.id))?.chosenOutcome.includes(outcome)
+                      ${predictions.find(p => p.matchId === match._id)?.chosenOutcome.includes(outcome) // Use match._id
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
@@ -102,8 +102,8 @@ function NewGameFormSection({ activeGame }) { // Changed prop name to activeGame
                     <input
                       type="checkbox"
                       className="hidden"
-                      checked={predictions.find(p => p.matchId === (match._id || match.id))?.chosenOutcome.includes(outcome)}
-                      onChange={() => handlePredictionChange((match._id || match.id), outcome)}
+                      checked={predictions.find(p => p.matchId === match._id)?.chosenOutcome.includes(outcome)} // Use match._id
+                      onChange={() => handlePredictionChange(match._id, outcome)} // Use match._id
                     />
                     {outcome === '1' ? 'برد میزبان' : outcome === 'X' ? 'مساوی' : 'برد میهمان'}
                   </label>

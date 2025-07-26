@@ -1,11 +1,12 @@
 // toto-frontend-user/src/components/MyTickets.js
 // کامپوننت مشاهده تیکت‌های پشتیبانی کاربر و ارسال پیام
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function MyTickets({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function MyTickets() {
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [messageText, setMessageText] = useState('');
@@ -14,43 +15,43 @@ function MyTickets({ token, API_BASE_URL }) {
   const [sendMessageLoading, setSendMessageLoading] = useState(false);
   const { t } = useLanguage();
 
-  const fetchMyTickets = async () => {
+  // تابع fetchMyTickets را داخل useCallback قرار می‌دهیم
+  const fetchMyTickets = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/support/tickets/my`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/support/tickets/my'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
       setTickets(res.data);
     } catch (err) {
       setError(err.response?.data?.message || t('error_fetching_tickets'));
+      console.error('Error fetching my tickets:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]); // t به dependency array اضافه شد
 
-  const fetchTicketDetails = async (ticketId) => {
+  // تابع fetchTicketDetails را داخل useCallback قرار می‌دهیم
+  const fetchTicketDetails = useCallback(async (ticketId) => {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/support/tickets/${ticketId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // درخواست Axios:
+      const res = await axios.get(`/support/tickets/${ticketId}`); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
       setSelectedTicket(res.data);
     } catch (err) {
       setError(err.response?.data?.message || t('error_fetching_ticket_details'));
+      console.error('Error fetching ticket details:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]); // t به dependency array اضافه شد
 
   useEffect(() => {
     fetchMyTickets();
-  }, [token, API_BASE_URL, t]);
+  }, [fetchMyTickets]); // fetchMyTickets به dependency array اضافه شد
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -60,20 +61,18 @@ function MyTickets({ token, API_BASE_URL }) {
     setError('');
 
     try {
+      // درخواست Axios:
       const res = await axios.post(
-        `${API_BASE_URL}/support/tickets/${selectedTicket._id}/message`,
+        `/support/tickets/${selectedTicket._id}/message`, // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         { message: messageText },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
       // به‌روزرسانی تیکت انتخاب شده با پیام جدید
       setSelectedTicket(res.data.ticket);
       setMessageText(''); // پاک کردن فیلد پیام
     } catch (err) {
       setError(err.response?.data?.message || t('error_sending_message'));
+      console.error('Error sending message:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setSendMessageLoading(false);
     }

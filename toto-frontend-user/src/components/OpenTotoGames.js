@@ -1,10 +1,11 @@
-//toto-frontend-user/src/components/OpenTotoGames.js
+// toto-frontend-user/src/components/OpenTotoGames.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function OpenTotoGames({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function OpenTotoGames() {
   const [openGames, setOpenGames] = useState([]);
   const [selectedGame, setSelectedGame] = useState(null);
   const [predictions, setPredictions] = useState({}); // { matchId: [outcome1, outcome2] }
@@ -20,23 +21,30 @@ function OpenTotoGames({ token, API_BASE_URL }) {
 
   const { t } = useLanguage();
 
-  const FORM_BASE_COST = 1;
+  const FORM_BASE_COST = 1; // این مقدار باید از تنظیمات بک‌اند دریافت شود، یا در .env باشد.
+
+  // تابع fetchOpenGames را داخل useCallback قرار می‌دهیم
+  const fetchOpenGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      setMessage(''); // پاک کردن پیام‌ها قبل از fetch جدید
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/totos/open'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+      setOpenGames(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching open games:', err.response?.data || err.message); // برای اشکال‌زدایی
+    } finally {
+      setLoading(false);
+    }
+  }, [t]); // t به dependency array اضافه شد
 
   useEffect(() => {
-    const fetchOpenGames = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/totos/open`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setOpenGames(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOpenGames();
-  }, [token, API_BASE_URL, t]);
+  }, [fetchOpenGames]); // fetchOpenGames به dependency array اضافه شد
 
   useEffect(() => {
     let calculatedCombinations = 1;
@@ -46,7 +54,9 @@ function OpenTotoGames({ token, API_BASE_URL }) {
         if (outcomes && outcomes.length > 0) {
           calculatedCombinations *= outcomes.length;
         } else {
-          calculatedCombinations *= 1;
+          // اگر برای یک بازی هیچ انتخابی نشده باشد، آن را به عنوان 1 ترکیب در نظر می‌گیریم
+          // اما در handleSubmitPrediction چک می‌کنیم که همه انتخاب شده باشند.
+          calculatedCombinations *= 1; 
         }
       });
       setFormPrice(calculatedCombinations * FORM_BASE_COST);
@@ -85,7 +95,8 @@ function OpenTotoGames({ token, API_BASE_URL }) {
     setSubmitting(true);
 
     if (!selectedGame) {
-      setError(t('select_game_for_prediction_error'));
+      setModalErrorMessage(t('select_game_for_prediction_error'));
+      setShowErrorModal(true);
       setSubmitting(false);
       return;
     }
@@ -94,13 +105,13 @@ function OpenTotoGames({ token, API_BASE_URL }) {
       const formattedPredictions = selectedGame.matches.map(match => {
         const chosenOutcome = predictions[match._id];
         if (!chosenOutcome || chosenOutcome.length === 0) {
-          // به جای throw کردن خطا، مودال را باز می‌کنیم:
+          // اگر برای یک بازی انتخابی نشده بود، خطا نمایش می‌دهیم
           setModalErrorMessage(
             t('please_select_at_least_one_outcome', { homeTeam: match.homeTeam, awayTeam: match.awayTeam })
           );
           setShowErrorModal(true);
           setSubmitting(false);
-          throw new Error('Not all matches predicted');
+          throw new Error('Validation failed: Not all matches predicted'); // برای خروج از try/catch
         }
         return {
           matchId: match._id,
@@ -108,12 +119,13 @@ function OpenTotoGames({ token, API_BASE_URL }) {
         };
       });
 
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
       await axios.post(
-        `${API_BASE_URL}/totos/predict`,
+        '/totos/predict', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         { totoGameId: selectedGame._id, predictions: formattedPredictions },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        // نیازی به هدر Authorization نیست
       );
 
       setMessage(t('prediction_submitted_success'));
@@ -122,11 +134,12 @@ function OpenTotoGames({ token, API_BASE_URL }) {
       setFormPrice(0);
 
     } catch (err) {
-      if (err.message === 'Not all matches predicted') {
-        // خطا را در مودال مدیریت کردیم، فقط از تابع خارج می‌شویم.
-        return;
+      // اگر خطای داخلی (مثل 'Validation failed') بود، آن را مدیریت می‌کنیم.
+      if (err.message === 'Validation failed: Not all matches predicted') {
+        return; // خطا قبلاً در مودال نمایش داده شده، از تابع خارج می‌شویم.
       }
       setError(err.response?.data?.message || t('error_submitting_prediction'));
+      console.error('Error submitting prediction:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setSubmitting(false);
     }
@@ -143,7 +156,7 @@ function OpenTotoGames({ token, API_BASE_URL }) {
           {message}
         </div>
       )}
-      {error && !showErrorModal && (
+      {error && !showErrorModal && ( // خطا را فقط در صورتی نمایش بده که مودال خطا باز نیست
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">
           {error}
         </div>

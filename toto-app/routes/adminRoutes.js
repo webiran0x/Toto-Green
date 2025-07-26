@@ -2,7 +2,7 @@
 // مسیرهای مربوط به عملیات‌های ادمین
 
 const express = require('express');
-const { protect, authorize } = require('../middleware/auth-old');
+const { protect, authorize } = require('../middleware/authMiddleware'); // استفاده از authMiddleware
 const {
     getAdminProfile,
     getAllUsers,
@@ -12,45 +12,50 @@ const {
     activateUser,
     getFinancialSummary,
     getAllTransactions,
-    getSystemLogs, // اصلاح شده: اکنون به درستی وارد شده
+    getSystemLogs,
     getUsersByRole,
     getUsersByStatus,
     getUsersByAccessLevel,
     // --- توابع جدید برای بازی‌ها، تراکنش‌ها، برداشت‌ها، و ...
-    createGame, // <--- نام تابع به createGame تغییر یافت
+    createGame,
     getAllGames,
     setGameResults,
     viewGamePredictions,
     getCryptoDeposits,
-    getWithdrawalRequests, // <--- برای دریافت همه درخواست‌های برداشت
-    processWithdrawal, // <--- برای پردازش درخواست برداشت
+    getWithdrawalRequests,
+    processWithdrawal,
     externalApiSync,
     getAdminSettings,
     updateAdminSettings,
-    getUserPredictions, // تابع جدید برای دریافت پیش‌بینی‌های کاربر
-    // <--- توابع جدیدی که در adminController.js اضافه خواهند شد
-    getPredictionsForTotoGame, // اضافه شده
-    closeTotoGameManually, // اضافه شده
-    downloadPredictions, // اضافه شده
-    cancelTotoGame, // اضافه شده
-    getPendingWithdrawalRequests, // اضافه شده
-    approveWithdrawalRequest, // اضافه شده
-    rejectWithdrawalRequest // اضافه شده
+    getUserPredictions,
+    getPredictionsForTotoGame,
+    closeTotoGameManually,
+    downloadPredictions, // تابع دانلود را اینجا ایمپورت می‌کنیم
+    cancelTotoGame,
+    getPendingWithdrawalRequests,
+    approveWithdrawalRequest,
+    rejectWithdrawalRequest
 } = require('../controllers/adminController');
 
 const router = express.Router();
 
-// تمام مسیرهای ادمین نیاز به احراز هویت و نقش 'admin' دارند
-router.use(protect, authorize('admin'));
+// --- مسیرهای عمومی (بدون نیاز به احراز هویت/نقش) ---
+// این مسیر برای دانلود پیش‌بینی‌ها است و نیازی به لاگین یا نقش ادمین ندارد.
+// این خط باید قبل از router.use(protect) و router.use(authorize) قرار گیرد.
+router.get('/download-predictions/:totoGameId', downloadPredictions);
+
+// --- تمام مسیرهای زیر نیاز به احراز هویت و نقش 'admin' دارند ---
+router.use(protect); // استفاده از protect از authMiddleware
+router.use(authorize('admin')); // استفاده از authorize از authMiddleware
 
 router.get('/profile', getAdminProfile);
 
 router.route('/users')
     .get(getAllUsers); // شامل فیلترها
 
-router.get('/users/role/:role', getUsersByRole); // مسیر جدید برای فیلتر بر اساس نقش
-router.get('/users/status/:status', getUsersByStatus); // مسیر جدید برای فیلتر بر اساس وضعیت
-router.get('/users/access-level/:level', getUsersByAccessLevel); // مسیر جدید برای فیلتر بر اساس سطح دسترسی
+router.get('/users/role/:role', getUsersByRole); // مسیر جدید
+router.get('/users/status/:status', getUsersByStatus); // مسیر جدید
+router.get('/users/access-level/:level', getUsersByAccessLevel); // مسیر جدید
 
 router.route('/users/:id')
     .get(getUserById)
@@ -63,41 +68,43 @@ router.get('/users/:id/predictions', getUserPredictions); // مسیر دریاف
 
 router.get('/financial-summary', getFinancialSummary);
 
-// <--- مسیر لاگ‌های سیستم (مسیر قدیمی /system-logs حذف شد)
+// مسیر لاگ‌های سیستم
 router.get('/logs', getSystemLogs);
 
 // --- مسیرهای مدیریت Toto Games (بازی‌ها) ---
-router.post('/games/create', createGame); // POST /api/admin/games/create (از createToto به createGame تغییر یافت)
-router.get('/games/all', getAllGames); // GET /api/admin/games/all
+router.post('/games/create', createGame);
+router.get('/games/all', getAllGames);
 
-// <--- مسیر جایگزین برای /api/admin/totos (در صورت نیاز فرانت‌اند)
+// مسیر جایگزین برای /api/admin/totos (در صورت نیاز فرانت‌اند)
 router.get('/totos', getAllGames);
 
-router.put('/games/set-results/:id', setGameResults); // PUT /api/admin/games/set-results/:id
-router.get('/games/view-predictions/:id', viewGamePredictions); // GET /api/admin/games/view-predictions/:id
+router.put('/games/set-results/:id', setGameResults); // ثبت نتایج بازی
+router.get('/games/view-predictions/:id', viewGamePredictions); // مشاهده پیش‌بینی‌های یک بازی خاص
 
-// <--- مسیرهای اضافه شده جدید برای مدیریت بازی‌های Toto
+// مسیرهای اضافه شده جدید برای مدیریت بازی‌های Toto
 router.get('/predictions/:totoGameId', getPredictionsForTotoGame); // دریافت پیش‌بینی‌های یک بازی Toto خاص
 router.put('/close-toto/:totoGameId', closeTotoGameManually); // بستن دستی بازی Toto
-router.get('/download-predictions/:totoGameId', downloadPredictions); // دانلود پیش‌بینی‌ها
-router.put('/cancel-game/:totoGameId', cancelTotoGame); // لغو بازی
+// router.get('/download-predictions/:totoGameId', downloadPredictions); // این خط به بالای فایل منتقل شد
+// --- اضافه شد: مسیر لغو بازی و بازپرداخت ---
+router.put('/games/cancel-and-refund/:totoGameId', cancelTotoGame); // لغو بازی و بازپرداخت
+// --- پایان بخش اضافه شد ---
 
 // --- مسیرهای مربوط به تراکنش‌ها، واریزهای رمزارزی و برداشت‌ها ---
 router.get('/transactions', getAllTransactions); // نمایش تمام تراکنش‌ها
 
 router.get('/crypto-deposits', getCryptoDeposits); // GET /api/admin/crypto-deposits
 
-// <--- مسیرهای مدیریت برداشت‌ها
+// مسیرهای مدیریت برداشت‌ها
 router.get('/withdrawals', getWithdrawalRequests); // GET /api/admin/withdrawals (مسیر کلی درخواست‌های برداشت)
 router.get('/withdrawals/pending', getPendingWithdrawalRequests); // برداشت‌های در انتظار
 
 router.put('/manage-withdrawals/:id/process', processWithdrawal); // PUT /api/admin/manage-withdrawals/:id/process (برای پردازش یا تأیید/رد برداشت)
-router.put('/withdrawals/:requestId/approve', approveWithdrawalRequest); // تأیید برداشت (مسیر جدید)
-router.put('/withdrawals/:requestId/reject', rejectWithdrawalRequest); // رد برداشت (مسیر جدید)
+router.put('/withdrawals/:requestId/approve', approveWithdrawalRequest); // تأیید برداشت
+router.put('/withdrawals/:requestId/reject', rejectWithdrawalRequest); // رد برداشت
 
 
 // --- مسیرهای مربوط به همگام‌سازی خارجی و تنظیمات ---
-router.post('/external-sync', externalApiSync); // POST /api/admin/external-sync
+router.post('/external-sync', externalApiSync);
 router.route('/settings')
     .get(getAdminSettings)
     .put(updateAdminSettings);

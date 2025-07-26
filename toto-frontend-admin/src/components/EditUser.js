@@ -3,10 +3,12 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom'; // اضافه شده: useParams و useNavigate
+import { useParams, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function EditUser() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const { userId } = useParams(); // دریافت userId از URL
   const navigate = useNavigate(); // هوک useNavigate برای ناوبری
   const [user, setUser] = useState(null);
@@ -30,9 +32,11 @@ function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
       try {
         setLoading(true);
         setError('');
-        const userRes = await axios.get(`${API_BASE_URL}/admin/users/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // درخواست Axios برای دریافت اطلاعات کاربر:
+        // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+        // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+        // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
+        const userRes = await axios.get(`/admin/users/${userId}`); // '/api' از ابتدای مسیر حذف شد
         setUser(userRes.data);
         setFormData({
           username: userRes.data.username,
@@ -44,13 +48,13 @@ function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
           score: userRes.data.score,
         });
 
-        const predictionsRes = await axios.get(`${API_BASE_URL}/admin/users/${userId}/predictions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // درخواست Axios برای دریافت پیش‌بینی‌های کاربر:
+        const predictionsRes = await axios.get(`/admin/users/${userId}/predictions`); // '/api' از ابتدای مسیر حذف شد
         setPredictions(predictionsRes.data);
 
       } catch (err) {
         setError(err.response?.data?.message || t('error_fetching_user_info_admin'));
+        console.error('Error fetching user data:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
       } finally {
         setLoading(false);
       }
@@ -59,7 +63,7 @@ function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
     if (userId) {
       fetchUserData();
     }
-  }, [userId, token, API_BASE_URL, t]);
+  }, [userId, t]); // 'token' و 'API_BASE_URL' از وابستگی‌ها حذف شدند
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -74,12 +78,14 @@ function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
     setMessage('');
     setError('');
     try {
-      await axios.put(`${API_BASE_URL}/admin/users/${userId}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // درخواست Axios برای به‌روزرسانی پروفایل کاربر:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      await axios.put(`/admin/users/${userId}`, formData); // '/api' از ابتدای مسیر حذف شد
       setMessage(t('profile_updated_success_admin'));
     } catch (err) {
       setError(err.response?.data?.message || t('error_updating_profile_admin'));
+      console.error('Error updating user profile:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     }
   };
 
@@ -96,7 +102,7 @@ function EditUser({ token, API_BASE_URL }) { // onBack از props حذف شد
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-gray-800">{t('edit_user_admin')} {user.username}</h2>
         <button
-          onClick={() => navigate('/admin/users')} // استفاده از useNavigate برای بازگشت
+          onClick={() => navigate('/admin/users')}
           className="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md transition duration-200"
         >
           {t('back_to_manage_users_admin')}

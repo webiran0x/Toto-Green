@@ -1,17 +1,14 @@
 // toto-app/controllers/totoGameController.js
-// کنترلر برای مدیریت بازی‌های Toto (ایجاد، مشاهده، به‌روزرسانی، حذف)
 
 const asyncHandler = require('express-async-handler');
 const TotoGame = require('../models/TotoGame');
 const Prediction = require('../models/Prediction');
 const User = require('../models/User');
-const Transaction = require('../models/Transaction'); // <--- استفاده از مدل جامع Transaction
+const Transaction = require('../models/Transaction');
 const logger = require('../utils/logger');
-const mongoose = require('mongoose'); // برای اعتبارسنجی ObjectId
+const mongoose = require('mongoose');
 const ExcelJS = require('exceljs');
-const TotoForm = require('../models/TotoForm');
-
-
+const TotoForm = require('../models/TotoForm'); // اگر از این مدل استفاده می‌کنید
 
 
 const getTotoPredictionsExcel = asyncHandler(async (req, res) => {
@@ -22,6 +19,7 @@ const getTotoPredictionsExcel = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
   }
 
+  // اطمینان از اینکه Prediction مدل صحیح را populate می‌کند
   const predictions = await Prediction.find({ totoGame: gameId }).populate('user', 'username email');
 
   const workbook = new ExcelJS.Workbook();
@@ -34,12 +32,15 @@ const getTotoPredictionsExcel = asyncHandler(async (req, res) => {
     { header: 'ایمیل', key: 'email', width: 25 },
     { header: 'تاریخ ثبت', key: 'createdAt', width: 20 },
     { header: 'قیمت فرم', key: 'price', width: 15 },
+    { header: 'شناسه فرم', key: 'formId', width: 20 }, // اضافه شد: شناسه فرم
     { header: 'پیش‌بینی‌ها', key: 'predictions', width: 50 },
   ];
 
   predictions.forEach(pred => {
+    // اطمینان از اینکه pred.predictions یک آرایه از اشیاء است
     const predText = pred.predictions.map(p => {
-      return `MatchID: ${p.matchId}, Outcomes: ${p.chosenOutcome.join(', ')}`;
+      // فرض می‌کنیم p.matchId یک ObjectId است که باید به رشته تبدیل شود
+      return `MatchID: ${p.matchId.toString().slice(-6)}, Outcomes: ${p.chosenOutcome.join(', ')}`; // نمایش 6 کاراکتر آخر MatchID برای خوانایی
     }).join(' | ');
 
     worksheet.addRow({
@@ -48,6 +49,7 @@ const getTotoPredictionsExcel = asyncHandler(async (req, res) => {
       email: pred.user.email,
       createdAt: pred.createdAt.toISOString().slice(0, 19).replace('T', ' '),
       price: pred.price,
+      formId: pred.formId, // اضافه شد: شناسه فرم
       predictions: predText
     });
   });
@@ -93,6 +95,9 @@ const createTotoGame = asyncHandler(async (req, res) => {
             totalPot: 0, // مجموع جوایز
             commissionDeducted: 0, // کمیسیون کسر شده
             finalPrizeAmount: 0, // مبلغ نهایی جایزه
+            // اطمینان از اینکه فیلدهای prizes و winners در مدل TotoGame وجود دارند
+            prizes: { firstPlace: 0, secondPlace: 0, thirdPlace: 0 },
+            winners: { first: [], second: [], third: [] }
         });
 
         logger.info(`Admin ${req.user.username} created new Toto game: ${totoGame.name} (ID: ${totoGame._id})`);
@@ -221,107 +226,19 @@ const deleteTotoGame = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    ثبت نتایج بازی Toto و امتیازدهی به پیش‌بینی‌ها (فقط برای ادمین)
-// @route   PUT /api/admin/totos/:id/results
-// @access  Private/Admin
-const setTotoGameResults = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { results } = req.body; // نتایج باید آرایه‌ای از 15 نتیجه (1, X, 2) باشد
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        logger.warn(`Invalid Toto game ID format for setting results: ${id}`);
-        return res.status(400).json({ message: 'فرمت شناسه بازی Toto نامعتبر است.' });
-    }
+// @desc    دریافت آخرین بازی بسته‌شده یا کامل‌شده (closed یا completed)
+// @route   GET /api/totos/last-finished-game
+// @access  Public
+const getLastFinishedTotoGame = asyncHandler(async (req, res) => {
+  const game = await TotoGame.findOne({ status: { $in: ['closed', 'completed'] } })
+    .sort({ deadline: -1 });
 
-    if (!results || !Array.isArray(results) || results.length !== 15 || !results.every(r => ['1', 'X', '2'].includes(r))) {
-        return res.status(400).json({ message: 'لطفاً نتایج را به درستی و برای هر ۱۵ بازی وارد کنید (1, X, 2).' });
-    }
+  if (!game) {
+    return res.status(404).json({ message: 'هیچ بازی بسته‌شده یا کامل‌شده‌ای یافت نشد.' });
+  }
 
-    try {
-        const totoGame = await TotoGame.findById(id);
-        if (!totoGame) {
-            return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
-        }
-
-        if (totoGame.status !== 'closed') {
-            return res.status(400).json({ message: 'فقط بازی‌های بسته شده را می‌توان نتیجه‌گیری کرد.' });
-        }
-
-        // ذخیره نتایج
-        totoGame.results = results;
-
-        // امتیازدهی به پیش‌بینی‌ها
-        const predictions = await Prediction.find({ totoGame: id }).populate('user');
-        let totalPot = 0; // مجموع کل مبلغ فرم‌ها
-        let firstPlaceUsers = [];
-        let secondPlaceUsers = [];
-        let thirdPlaceUsers = [];
-
-        for (const prediction of predictions) {
-            totalPot += prediction.cost; // فرض می‌کنیم cost همان مبلغ فرم است
-
-            let correctPredictions = 0;
-            for (let i = 0; i < 15; i++) {
-                if (prediction.predictions[i] === results[i]) {
-                    correctPredictions++;
-                }
-            }
-            prediction.correctPredictions = correctPredictions;
-            await prediction.save();
-
-            // تعیین رتبه و افزودن به لیست برندگان
-            if (correctPredictions === 15) {
-                firstPlaceUsers.push(prediction.user._id);
-            } else if (correctPredictions === 14) {
-                secondPlaceUsers.push(prediction.user._id);
-            } else if (correctPredictions === 13) {
-                thirdPlaceUsers.push(prediction.user._id);
-            }
-        }
-
-        // محاسبه جوایز
-        const commissionRate = 0.10; // 10% کمیسیون
-        const finalPrizePool = totalPot * (1 - commissionRate);
-
-        let firstPlacePrize = 0;
-        let secondPlacePrize = 0;
-        let thirdPlacePrize = 0;
-
-        const totalFirstPlacePredictions = firstPlaceUsers.length;
-        const totalSecondPlacePredictions = secondPlaceUsers.length;
-        const totalThirdPlacePredictions = thirdPlaceUsers.length;
-
-        if (totalFirstPlacePredictions > 0) {
-            firstPlacePrize = (finalPrizePool * 0.70) / totalFirstPlacePredictions; // 70% برای نفرات اول
-        }
-        if (totalSecondPlacePredictions > 0) {
-            secondPlacePrize = (finalPrizePool * 0.20) / totalSecondPlacePredictions; // 20% برای نفرات دوم
-        }
-        if (totalThirdPlacePredictions > 0) {
-            thirdPlacePrize = (finalPrizePool * 0.10) / totalThirdPlacePredictions; // 10% برای نفرات سوم
-        }
-
-        // ذخیره اطلاعات جوایز و برندگان در TotoGame
-        totoGame.totalPot = totalPot;
-        totoGame.commissionDeducted = totalPot * commissionRate;
-        totoGame.finalPrizeAmount = finalPrizePool;
-        totoGame.prizes = {
-            firstPlace: firstPlacePrize,
-            secondPlace: secondPlacePrize,
-            thirdPlace: thirdPlacePrize
-        };
-        totoGame.winners = {
-            first: firstPlaceUsers,
-            second: secondPlaceUsers,
-            third: thirdPlaceUsers
-        };
-        await totoGame.save();
-
-        res.json({ message: 'نتایج بازی ثبت و جوایز محاسبه شد.' });
-    } catch (error) {
-        logger.error(`Error setting results for Toto game ${id}: ${error.message}`);
-        res.status(500).json({ message: 'خطا در ثبت نتایج بازی Toto.' });
-    }
+  res.json(game);
 });
 
 // @desc    خروجی اکسل از فرم‌های پیش‌بینی کاربران
@@ -371,7 +288,8 @@ module.exports = {
     getTotoGameById,
     updateTotoGame,
     deleteTotoGame,
-    setTotoGameResults,
+    // setTotoGameResults, // این خط حذف شد
     exportFormsExcel,
-    getTotoPredictionsExcel
+    getTotoPredictionsExcel,
+    getLastFinishedTotoGame // اضافه شده
 };

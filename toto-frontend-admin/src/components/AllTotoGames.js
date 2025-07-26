@@ -1,44 +1,85 @@
 // toto-frontend-admin/src/components/AllTotoGames.js
-// کامپوننت نمایش تمام مسابقات Toto برای ادمین
+// کامپوننت نمایش تمام بازی‌های Toto با قابلیت‌های ادمین
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
-import { useLanguage } from '../contexts/LanguageContext'; // <--- اضافه شده
+import { useLanguage } from '../contexts/LanguageContext';
 
-function AllTotoGames({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function AllTotoGames() {
   const [totoGames, setTotoGames] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const { t } = useLanguage(); // <--- استفاده از هوک زبان
+  const [message, setMessage] = useState('');
+  const { t } = useLanguage();
+
+  const fetchGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      setMessage('');
+      const res = await axios.get('/admin/games/all'); // مسیر اصلاح شد
+      setTotoGames(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching all Toto games:', err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
-    const fetchAllTotoGames = async () => {
+    fetchGames();
+  }, [fetchGames]);
+
+  const handleDeleteGame = async (gameId) => {
+    if (window.confirm(t('confirm_delete_game'))) {
       try {
-        const res = await axios.get(`${API_BASE_URL}/admin/totos`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setTotoGames(res.data);
+        await axios.delete(`/admin/totos/${gameId}`); // مسیر اصلاح شد
+        setTotoGames(totoGames.filter((game) => game._id !== gameId));
+        setMessage(t('game_deleted_successfully'));
       } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setLoading(false);
+        setError(err.response?.data?.message || t('error_deleting_game'));
+        console.error('Error deleting game:', err.response?.data || err.message);
       }
-    };
-    fetchAllTotoGames();
-  }, [token, API_BASE_URL, t]);
+    }
+  };
+
+  const handleCloseGameManually = async (gameId) => {
+    if (window.confirm(t('confirm_close_game_manually'))) {
+      try {
+        const res = await axios.put(`/admin/close-toto/${gameId}`, {}); // مسیر اصلاح شد
+        setTotoGames(totoGames.map(game => game._id === gameId ? { ...game, status: res.data.totoGame.status } : game));
+        setMessage(t('game_closed_successfully'));
+      } catch (err) {
+        setError(err.response?.data?.message || t('error_closing_game'));
+        console.error('Error closing game manually:', err.response?.data || err.message);
+      }
+    }
+  };
+
+  const handleCancelGameAndRefund = async (gameId, gameName) => {
+    if (window.confirm(t('confirm_cancel_game_and_refund', { gameName }))) {
+      try {
+        const res = await axios.put(`/admin/games/cancel-and-refund/${gameId}`, {}); // مسیر اصلاح شد
+        setTotoGames(totoGames.map(game => game._id === gameId ? { ...game, status: 'cancelled', isRefunded: true } : game));
+        setMessage(res.data.message || t('game_cancelled_and_refunded_successfully'));
+      } catch (err) {
+        setError(err.response?.data?.message || t('error_cancelling_game_and_refunding'));
+        console.error('Error cancelling game and refunding:', err.response?.data || err.message);
+      }
+    }
+  };
 
   const handleDownloadPredictions = async (totoGameId, gameName) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/admin/download-predictions/${totoGameId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        responseType: 'blob', // برای دریافت فایل به صورت باینری
+      // درخواست Axios: بدون هدر Authorization
+      // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+      const res = await axios.get(`/admin/download-predictions/${totoGameId}`, {
+        responseType: 'blob',
       });
 
-      // ایجاد URL برای دانلود فایل
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -46,11 +87,11 @@ function AllTotoGames({ token, API_BASE_URL }) {
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url); // آزادسازی منابع
+      window.URL.revokeObjectURL(url);
 
     } catch (err) {
       setError(err.response?.data?.message || t('error_downloading_predictions'));
-      console.error(err);
+      console.error('Error downloading predictions:', err.response?.data || err.message);
     }
   };
 
@@ -60,42 +101,43 @@ function AllTotoGames({ token, API_BASE_URL }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('all_toto_games')}</h2>
+      {message && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">{message}</div>}
+
       {totoGames.length === 0 ? (
-        <p className="text-gray-600">{t('no_games_found')}</p>
+        <p className="text-gray-600 text-center">{t('no_games_found')}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {totoGames.map((game) => (
-            <div key={game._id} className="bg-blue-50 p-4 rounded-lg shadow-sm border border-blue-200 flex flex-col justify-between">
+            <div key={game._id} className="bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold text-blue-800 mb-2">{game.name}</h3>
-                <p className="text-gray-700 text-sm mb-1">
-                  {t('status')}: <span className={`font-semibold ${
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">{game.name}</h3>
+                <p className="text-gray-600 text-sm mb-1">{t('deadline')}: {new Date(game.deadline).toLocaleString('fa-IR')}</p>
+                <p className="text-gray-600 text-sm mb-1">
+                  {t('status')}:{' '}
+                  <span className={`font-semibold ${
                     game.status === 'open' ? 'text-green-600' :
                     game.status === 'closed' ? 'text-orange-600' :
                     game.status === 'completed' ? 'text-purple-600' :
-                    'text-red-600' // برای وضعیت 'cancelled'
+                    'text-red-600'
                   }`}>
                     {t(`status_${game.status}`)}
                   </span>
                 </p>
-                <p className="text-gray-700 text-sm mb-1">{t('deadline_label')}: {new Date(game.deadline).toLocaleString('fa-IR')}</p>
-                <p className="text-gray-700 text-sm mb-3">{t('creation_date')}: {new Date(game.createdAt).toLocaleString('fa-IR')}</p>
-                <p className="text-gray-700 text-sm mb-3">{t('refunded')}: {game.isRefunded ? t('yes') : t('no')}</p>
+                <p className="text-gray-600 text-sm mb-1">{t('total_pot')}: {game.totalPot?.toLocaleString('fa-IR') || 0} {t('usdt')}</p>
+                <p className="text-gray-600 text-sm mb-3">{t('prize_pool')}: {game.prizePool?.toLocaleString('fa-IR') || 0} {t('usdt')}</p>
 
-
-                {/* اطلاعات جوایز */}
-                {game.status !== 'open' && game.status !== 'cancelled' && ( // جوایز فقط برای بازی‌های بسته/تکمیل شده
+                {game.status !== 'open' && game.status !== 'cancelled' && (
                     <div className="mt-4 bg-blue-100 p-3 rounded-md">
                         <h4 className="font-semibold text-blue-700 mb-1">{t('prize_info')}</h4>
                         <p className="text-gray-700 text-sm">{t('total_pot_collected')} {game.totalPot?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
-                        <p className="text-gray-700 text-sm">{t('commission_deducted')} {game.commissionAmount?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
+                        <p className="text-gray-700 text-sm">{game.commissionAmount !== undefined ? `${t('commission_deducted')} ${game.commissionAmount.toLocaleString('fa-IR')} ${t('toman')}` : `${t('commission_deducted')} 0 ${t('toman')}`}</p>
                         <p className="text-gray-700 text-sm font-bold">{t('final_prize_amount')} {game.prizePool?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
                         <p className="text-gray-700 text-sm">{t('first_place_prize')} {game.prizes?.firstPlace?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
                         <p className="text-gray-700 text-sm">{t('second_place_prize')} {game.prizes?.secondPlace?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
                         <p className="text-gray-700 text-sm">{t('third_place_prize')} {game.prizes?.thirdPlace?.toLocaleString('fa-IR') || 0} {t('toman')}</p>
                     </div>
                 )}
-                 {game.status === 'completed' && game.winners && ( // نمایش برندگان
+                 {game.status === 'completed' && game.winners && (
                     <div className="mt-4 bg-green-100 p-3 rounded-md">
                         <h4 className="font-semibold text-green-700 mb-1">{t('winners')}</h4>
                         {game.winners.first && game.winners.first.length > 0 && (
@@ -125,8 +167,33 @@ function AllTotoGames({ token, API_BASE_URL }) {
                   ))}
                 </ul>
               </div>
-              {/* دکمه دانلود فرم‌ها */}
-              {game.status !== 'open' && ( // فقط وقتی بازی بسته یا تکمیل شده باشد قابل دانلود است
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleDeleteGame(game._id)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                >
+                  {t('delete_game')}
+                </button>
+                {game.status === 'open' && (
+                  <button
+                    onClick={() => handleCloseGameManually(game._id)}
+                    className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                  >
+                    {t('close_game_manually')}
+                  </button>
+                )}
+                {(game.status === 'closed' || game.status === 'open') && !game.isRefunded && (
+                    <button
+                        onClick={() => handleCancelGameAndRefund(game._id, game.name)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+                    >
+                        {t('cancel_game_and_refund')}
+                    </button>
+                )}
+              </div>
+              {/* --- اصلاح شده: نمایش دکمه دانلود برای وضعیت‌های 'closed' یا 'completed' --- */}
+              {(game.status === 'closed' || game.status === 'completed') && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => handleDownloadPredictions(game._id, game.name)}
@@ -136,6 +203,7 @@ function AllTotoGames({ token, API_BASE_URL }) {
                   </button>
                 </div>
               )}
+              {/* --- پایان اصلاح شده --- */}
             </div>
           ))}
         </div>

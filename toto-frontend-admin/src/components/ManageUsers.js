@@ -1,12 +1,11 @@
-// toto-frontend-admin/src/components/ManageUsers.js
-// کامپوننت برای مدیریت کاربران (مشاهده، جستجو، فیلتر، بلاک/فعال‌سازی، ویرایش)
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function ManageUsers({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function ManageUsers() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,13 +32,13 @@ function ManageUsers({ token, API_BASE_URL }) {
         status: statusFilter,
         accessLevel: accessLevelFilter,
       };
-      const res = await axios.get(`${API_BASE_URL}/admin/users`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
+      const res = await axios.get('/admin/users', { // '/api' از ابتدای مسیر حذف شد
         params,
       });
-      // <--- اصلاح شد: دسترسی به آرایه کاربران از res.data.users
       setUsers(res.data.users);
       setTotalPages(res.data.totalPages);
     } catch (err) {
@@ -47,7 +46,7 @@ function ManageUsers({ token, API_BASE_URL }) {
     } finally {
       setLoading(false);
     }
-  }, [token, API_BASE_URL, currentPage, keyword, roleFilter, statusFilter, accessLevelFilter, t]);
+  }, [currentPage, keyword, roleFilter, statusFilter, accessLevelFilter, t]); // token و API_BASE_URL از وابستگی‌ها حذف شدند
 
   useEffect(() => {
     fetchUsers();
@@ -58,14 +57,13 @@ function ManageUsers({ token, API_BASE_URL }) {
       setMessage('');
       setError('');
       const endpoint = newStatus === 'blocked' ? 'block' : 'activate';
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
       const res = await axios.put(
-        `${API_BASE_URL}/admin/users/${userId}/${endpoint}`,
+        `/admin/users/${userId}/${endpoint}`, // '/api' از ابتدای مسیر حذف شد
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
       setMessage(res.data.message);
       fetchUsers(); // رفرش لیست کاربران

@@ -12,6 +12,41 @@ const logger = require('../utils/logger');
 const bcrypt = require('bcryptjs');
 const axios = require('axios'); // برای فراخوانی API SHKeeper
 const mongoose = require('mongoose'); // برای تولید ObjectId جدید برای external_id
+// --- اضافه شد: ایمپورت تابع کمکی ---
+const { generateRandomString } = require('../utils/helpers'); // اطمینان حاصل کنید که این مسیر و تابع درست هستند
+// --- پایان بخش اضافه شد ---
+
+
+// @desc    دانلود داده‌های بازی کاربر (پیش‌بینی‌ها)
+// @route   GET /api/users/games/:id/download
+// @access  Private
+const downloadUserGameData = asyncHandler(async (req, res) => {
+    const { id } = req.params; // id بازی Toto
+    const userId = req.user._id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'شناسه بازی Toto نامعتبر است.' });
+    }
+
+    const game = await TotoGame.findById(id);
+    if (!game) {
+        return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
+    }
+
+    const prediction = await Prediction.findOne({ user: userId, totoGame: id });
+    if (!prediction) {
+        return res.status(404).json({ message: 'پیش‌بینی شما برای این بازی یافت نشد.' });
+    }
+
+    // --- تغییر موقت برای عیب‌یابی ---
+    logger.info(`User ${req.user.username} (ID: ${userId}) requested download for Toto game: ${game.name} (ID: ${game._id}).`);
+    res.status(200).send(`Download data for game ${game.name}, prediction by ${req.user.username}.`);
+    // --- پایان تغییر موقت ---
+
+    // TODO: پس از رفع مشکل، کد اصلی تولید فایل اکسل را اینجا بازگردانید.
+});
+
+
 
 // @desc    دریافت پروفایل کاربر
 // @route   GET /api/users/profile
@@ -150,7 +185,7 @@ const deposit = asyncHandler(async (req, res) => {
             external_id: cryptoDeposit._id.toString(), // استفاده از _id رکورد CryptoDeposit خودمان به عنوان external_id
             fiat: 'USD', // بر اساس مستندات SHKeeper، فقط USD پشتیبانی می‌شود
             amount: String(amount), // SHKeeper انتظار رشته دارد
-            callback_url: process.env.SHKEEPER_CALLBACK_URL // <--- استفاده مستقیم از مقدار درست
+            callback_url: process.env.SHKEEPER_CALLBACK_URL
         }, {
             headers: {
                 'X-Shkeeper-Api-Key': process.env.SHKEEPER_API_KEY,
@@ -176,39 +211,28 @@ const deposit = asyncHandler(async (req, res) => {
 
         console.log('CryptoDeposit record created and updated with SHKeeper info:', cryptoDeposit._id);
 
-
-// --- تغییرات اینجا اعمال می‌شود ---
-let qrCodeUri = '';
-// ساخت URI برای QR Code بر اساس نوع ارز و شبکه
-// این فرمت‌ها استاندارد هستند اما ممکن است برای همه کیف پول‌ها یکسان نباشند
-if (cryptoCurrency === 'BTC') {
-    qrCodeUri = `bitcoin:${wallet}?amount=${amount}`;
-} else if (cryptoCurrency === 'USDT') {
-    // برای USDT، معمولاً از URI scheme بلاکچین اصلی استفاده می‌شود
-    // یا فقط آدرس کیف پول به تنهایی کافی است و کیف پول نوع ارز را تشخیص می‌دهد.
-    // برای اطمینان بیشتر، آدرس خالی یا فقط آدرس را قرار می‌دهیم و در فرانت‌اند
-    // می‌توانیم از یک متن ساده برای QR استفاده کنیم.
-    // اگر می خواهید یک URI خاص برای USDT بسازید، باید مستندات کیف پول های هدف را بررسی کنید.
-    // فعلاً فقط آدرس را به عنوان متن QR ارسال می کنیم.
-    qrCodeUri = wallet; // یا می توانید `USDT:${wallet}?amount=${amount}&chain=${network}` را امتحان کنید
-}
+        let qrCodeUri = '';
+        if (cryptoCurrency === 'BTC') {
+            qrCodeUri = `bitcoin:${wallet}?amount=${amount}`;
+        } else if (cryptoCurrency === 'USDT') {
+            qrCodeUri = wallet;
+        }
 
         res.status(200).json({
             message: 'Crypto deposit initiated. Please send funds to the generated address.',
             depositInfo: {
                 walletAddress: wallet,
-                cryptoCurrency: `${cryptoCurrency}-${network}`, // برای نمایش به کاربر
+                cryptoCurrency: `${cryptoCurrency}-${network}`,
                 expectedAmount: amount,
                 shkeeperInvoiceId: shkeeperInvoiceId,
                 qrCodeUri: `${cryptoCurrency.toLowerCase()}:${wallet}?amount=${amount}&label=LottoGreenDeposit`
             },
-            cryptoDepositId: cryptoDeposit._id // برای پیگیری در فرانت‌اند
+            cryptoDepositId: cryptoDeposit._id
         });
 
     } catch (error) {
         logger.error(`Error during crypto deposit initiation for user ${userId}: ${error.message}`);
-        // اگر قبل از ایجاد CryptoDeposit خطا رخ داد یا در حین فراخوانی SHKeeper
-        if (cryptoDeposit && cryptoDeposit.status === 'pending') { // اگر رکورد CryptoDeposit ایجاد شده و در وضعیت pending بود
+        if (cryptoDeposit && cryptoDeposit.status === 'pending') {
             cryptoDeposit.status = 'failed';
             cryptoDeposit.description = `Failed to initiate SHKeeper deposit: ${error.message}`;
             await cryptoDeposit.save();
@@ -217,21 +241,19 @@ if (cryptoCurrency === 'BTC') {
     }
 
   } else {
-    // --- منطق برای واریزهای دستی یا از طریق درگاه پرداخت (غیر کریپتو) ---
     console.log('Processing manual/gateway deposit...');
 
-    const transaction = await Transaction.create({ // استفاده از مدل جامع Transaction
+    const transaction = await Transaction.create({
       user: userId,
       amount: amount,
       type: 'deposit',
-      method: method || 'manual', // پیش‌فرض دستی اگر مشخص نشده باشد
-      status: 'completed', // واریز دستی بلافاصله تکمیل می‌شود
+      method: method || 'manual',
+      status: 'completed',
       description: `Deposit of ${amount} USDT via ${method || 'manual'}`
     });
 
     console.log('General Transaction record created for manual/gateway deposit:', transaction._id);
 
-    // به‌روزرسانی موجودی کاربر
     const user = await User.findById(userId);
     if (user) {
       user.balance += amount;
@@ -253,7 +275,10 @@ if (cryptoCurrency === 'BTC') {
 // @route   POST /api/users/predict
 // @access  Private
 const submitPrediction = asyncHandler(async (req, res) => {
-    const { totoGameId, predictions: userPredictions } = req.body; // userPredictions: [{ matchId, chosenOutcome }]
+    const { totoGameId, predictions: userPredictions } = req.body;
+    console.log(userPredictions);
+     // userPredictions: [{ matchId, chosenOutcome }]
+    const userId = req.user.id; // شناسه کاربر از توکن احراز هویت شده
 
     // اعتبارسنجی اولیه ورودی‌ها
     if (!userPredictions || !Array.isArray(userPredictions) || userPredictions.length === 0) {
@@ -266,17 +291,15 @@ const submitPrediction = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: 'بازی Toto یافت نشد.' });
         }
 
-        // بررسی اینکه آیا مهلت ثبت‌نام گذشته است یا خیر
         if (totoGame.status !== 'open' || new Date() > totoGame.deadline) {
             return res.status(400).json({ message: 'مهلت ثبت پیش‌بینی برای این بازی به پایان رسیده است.' });
         }
 
-        // اعتبارسنجی پیش‌بینی‌ها در برابر بازی‌های موجود در totoGame
         if (userPredictions.length !== totoGame.matches.length) {
             return res.status(400).json({ message: `پیش‌بینی باید شامل دقیقاً ${totoGame.matches.length} بازی باشد.` });
         }
 
-        let totalCombinations = 1; // برای محاسبه قیمت تصاعدی
+        let totalCombinations = 1;
         const validPredictions = [];
 
         for (const userPred of userPredictions) {
@@ -287,54 +310,98 @@ const submitPrediction = asyncHandler(async (req, res) => {
                 return res.status(400).json({ message: `بازی با شناسه ${matchId} در این مسابقه Toto یافت نشد.` });
             }
 
-            // اعتبارسنجی chosenOutcome
             if (!Array.isArray(chosenOutcome) || chosenOutcome.length === 0 || !chosenOutcome.every(o => ['1', 'X', '2'].includes(o))) {
                 return res.status(400).json({ message: `نتیجه انتخاب شده برای بازی ${matchId} نامعتبر است.` });
             }
 
-            totalCombinations *= chosenOutcome.length; // ضرب تعداد انتخاب‌ها برای هر بازی
+            totalCombinations *= chosenOutcome.length;
+
+            // --- اضافه شد: لاگ برای بررسی chosenOutcome قبل از push ---
+            console.log(`Debug: chosenOutcome before push to validPredictions:`, chosenOutcome);
+            console.log(`Debug: Type of chosenOutcome before push:`, typeof chosenOutcome);
+            console.log(`Debug: Is chosenOutcome an Array before push:`, Array.isArray(chosenOutcome));
+            // --- پایان لاگ اضافه شده ---
 
             validPredictions.push({ matchId: matchInGame._id, chosenOutcome });
         }
 
-        const FORM_BASE_COST = 1; // هر فرم 1 USDT
+        const FORM_BASE_COST = 1;
         const finalFormPrice = totalCombinations * FORM_BASE_COST;
 
-        // بررسی موجودی کاربر
         const user = await User.findById(req.user._id);
         if (user.balance < finalFormPrice) {
             return res.status(400).json({ message: `موجودی شما کافی نیست. ${finalFormPrice.toLocaleString('fa-IR')} USDT مورد نیاز است.` });
         }
 
-        // کسر هزینه از موجودی کاربر
+        // const existingPrediction = await Prediction.findOne({ user: userId, totoGame: totoGameId });
+        // if (existingPrediction) {
+        //     return res.status(400).json({ message: 'شما قبلاً برای این بازی پیش‌بینی ثبت کرده‌اید.' });
+        // }
+        
+        // --- اضافه شد: تولید formId منحصر به فرد ---
+        let formId;
+        let isUnique = false;
+        while (!isUnique) {
+            const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+            const randomPart = generateRandomString(6); // 6 کاراکتر تصادفی
+            formId = `FORM-${datePart}-${randomPart}`;
+            const existingFormId = await Prediction.findOne({ formId });
+            if (!existingFormId) {
+                isUnique = true;
+            }
+        }
+        // --- پایان بخش اضافه شد ---
+
+
         user.balance -= finalFormPrice;
         await user.save();
 
-        // ایجاد و ذخیره پیش‌بینی
         const newPrediction = new Prediction({
             user: req.user._id,
             totoGame: totoGameId,
             predictions: validPredictions,
-            price: finalFormPrice
+            price: finalFormPrice,
+            formId // --- اضافه شد: اختصاص formId به پیش‌بینی ---
         });
 
         await newPrediction.save();
 
-        // ایجاد رکورد تراکنش برای پرداخت فرم
+        totoGame.totalPot += finalFormPrice; // مبلغ فرم به totalPot اضافه می‌شود
+        await totoGame.save();
+
         await Transaction.create({
             user: req.user._id,
-            amount: -finalFormPrice, // مبلغ منفی برای کسر
+            amount: -finalFormPrice,
             type: 'form_payment',
-            method: 'system', // پرداخت داخلی سیستم
+            method: 'system',
             description: `پرداخت فرم پیش‌بینی برای مسابقه ${totoGame.name}`,
             relatedEntity: newPrediction._id,
             relatedEntityType: 'Prediction',
             status: 'completed'
         });
 
+        // بررسی و اعطای کمیسیون ارجاع (اگر این اولین فرم کاربر است)
+        const userPredictionsCount = await Prediction.countDocuments({ user: req.user._id });
+        if (userPredictionsCount === 1) { // اگر این اولین پیش‌بینی کاربر است
+            await awardReferralCommission(req.user._id, finalFormPrice);
+        }
+
+        logger.info(`User ${req.user.username} (ID: ${req.user._id}) submitted prediction for Toto Game ${totoGame.name} (ID: ${totoGameId}) with Form ID: ${formId}.`);
+
         res.status(201).json({
             message: 'پیش‌بینی شما با موفقیت ثبت شد.',
-            prediction: newPrediction,
+            prediction: {
+                _id: newPrediction._id,
+                formId: newPrediction.formId,
+                user: newPrediction.user,
+                totoGame: newPrediction.totoGame,
+                predictions: newPrediction.predictions,
+                price: newPrediction.price,
+                isScored: newPrediction.isScored,
+                score: newPrediction.score,
+                isRefunded: newPrediction.isRefunded,
+                createdAt: newPrediction.createdAt
+            },
             userBalance: user.balance
         });
 
@@ -343,6 +410,7 @@ const submitPrediction = asyncHandler(async (req, res) => {
         res.status(500).json({ message: 'خطا در ثبت پیش‌بینی.' });
     }
 });
+
 
 
 // @desc    درخواست برداشت وجه توسط کاربر
@@ -367,6 +435,12 @@ const withdrawFunds = asyncHandler(async (req, res) => {
       logger.error(`User ${req.user._id} not found during withdrawal attempt.`);
       return res.status(404).json({ message: 'کاربر یافت نشد.' });
     }
+
+    // TODO: از تنظیمات ادمین برای حداقل مبلغ برداشت استفاده کنید
+    // const adminSettings = await AdminSettings.findOne({});
+    // if (amount < adminSettings.minWithdrawal) {
+    //   return res.status(400).json({ message: `حداقل مبلغ برداشت ${adminSettings.minWithdrawal} USDT است.` });
+    // }
 
     if (user.balance < amount) {
       logger.warn(`User ${user.username} has insufficient balance (${user.balance}) for withdrawal amount ${amount}.`);
@@ -586,6 +660,6 @@ module.exports = {
     withdrawFunds,
     claimPrize,
     getSingleCryptoDeposit,
-    getExpiredGames  // اضافه کن اینجا
+    getExpiredGames
 };
 console.log('USERCONTROLLER.JS: Finished userController loading.');

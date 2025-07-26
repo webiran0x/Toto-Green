@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function Withdraw({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function Withdraw() {
   const [amount, setAmount] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [network, setNetwork] = useState('TRC20'); // مقدار پیش‌فرض
@@ -19,18 +20,18 @@ function Withdraw({ token, API_BASE_URL }) {
     setLoading(true);
 
     try {
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
       const res = await axios.post(
-        `${API_BASE_URL}/users/withdraw`,
+        '/users/withdraw', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         {
           amount: Number(amount),
           walletAddress,
-          network, // اضافه شد
+          network,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
 
       setMessage(
@@ -44,6 +45,7 @@ function Withdraw({ token, API_BASE_URL }) {
       setNetwork('TRC20'); // ریست شبکه
     } catch (err) {
       setError(err.response?.data?.message || t('error_withdrawing_funds'));
+      console.error('Withdrawal error:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }

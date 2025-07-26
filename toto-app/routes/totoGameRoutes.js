@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const TotoGame = require('../models/TotoGame');
 const { setCache, getCache } = require('../utils/cache');
 const logger = require('../utils/logger');
-const { protect } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware'); // اطمینان از استفاده از authMiddleware صحیح
 
 // Import Toto Game related controllers
 const {
@@ -22,9 +22,12 @@ const router = express.Router();
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 دقیقه کش
 
+// --- مسیرهای عمومی (Public Routes) ---
+
 // @desc    دریافت لیست بازی‌های Toto که "باز" هستند (مهلت نگذشته)
 // @route   GET /api/totos/open
 // @access  Public
+// ✅ این مسیر باید قبل از /:id تعریف شود
 router.get('/open', async (req, res) => {
     const cacheKey = 'openTotoGames';
     const cachedGames = getCache(cacheKey);
@@ -50,26 +53,29 @@ router.get('/open', async (req, res) => {
     }
 });
 
-// @desc    دریافت آخرین بازی کامل‌شده
-// @route   GET /api/totos/last-completed-game
+// @desc    دریافت آخرین بازی بسته‌شده یا کامل‌شده (closed یا completed)
+// @route   GET /api/totos/last-finished-game
 // @access  Public
-router.get('/last-completed-game', async (req, res) => {
+router.get('/last-finished-game', async (req, res) => {
     try {
-        const lastCompletedGame = await TotoGame.findOne({ status: 'completed' }).sort({ completedAt: -1 });
-        if (!lastCompletedGame) {
-            return res.status(404).json({ message: 'هیچ بازی کامل‌شده‌ای یافت نشد.' });
+        const lastFinishedGame = await TotoGame.findOne({ status: { $in: ['closed', 'completed'] } })
+            .sort({ createdAt: -1 })
+            .populate('winners.first', 'username')
+            .populate('winners.second', 'username')
+            .populate('winners.third', 'username');
+
+        if (!lastFinishedGame) {
+            return res.status(404).json({ message: 'هیچ بازی بسته‌شده یا کامل‌شده‌ای یافت نشد.' });
         }
-        res.json(lastCompletedGame);
+
+        res.json(lastFinishedGame);
     } catch (error) {
-        logger.error('Error fetching last completed Toto game:', error);
-        res.status(500).json({ message: 'خطا در دریافت آخرین بازی کامل‌شده.' });
+        logger.error('Error fetching last finished Toto game:', error);
+        res.status(500).json({ message: 'خطا در دریافت آخرین بازی بسته‌شده یا کامل‌شده.' });
     }
 });
 
-// @desc    دریافت جزئیات یک بازی Toto با شناسه
-// @route   GET /api/totos/:id
-// @access  Public
-router.get('/:id', getTotoGameById);
+// --- مسیرهای خصوصی (Private Routes) - نیاز به احراز هویت ---
 
 // @desc    ارسال فرم پیش‌بینی توسط کاربر
 // @route   POST /api/totos/predict
@@ -79,6 +85,15 @@ router.post('/predict', protect, submitPrediction);
 // @desc    خروجی گرفتن از پیش‌بینی‌های یک بازی Toto با شناسه مشخص (فایل اکسل)
 // @route   GET /api/totos/:id/predictions-excel
 // @access  Private
+// ✅ این مسیر نیز باید قبل از /:id عمومی تعریف شود
 router.get('/:id/predictions-excel', protect, getTotoPredictionsExcel);
+
+
+// @desc    دریافت جزئیات یک بازی Toto با شناسه
+// @route   GET /api/totos/:id
+// @access  Public
+// ✅ این مسیر عمومی باید آخرین مسیر از نوع GET در این فایل باشد
+router.get('/:id', getTotoGameById);
+
 
 module.exports = router;

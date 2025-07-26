@@ -1,11 +1,10 @@
-// toto-frontend-admin/src/components/CreateTotoGame.js
-// کامپوننت برای ایجاد بازی Toto جدید
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function CreateTotoGame({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function CreateTotoGame() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [gameName, setGameName] = useState('');
   const [deadline, setDeadline] = useState('');
   const [matches, setMatches] = useState(Array(15).fill({ homeTeam: '', awayTeam: '', date: '' }));
@@ -58,7 +57,7 @@ function CreateTotoGame({ token, API_BASE_URL }) {
       date: formatDateTimeToISO(match.date)
     }));
 
-    // <--- اضافه شد: لاگ کردن مقادیر تاریخ فرمت شده برای اشکال‌زدایی
+    // لاگ کردن مقادیر تاریخ فرمت شده برای اشکال‌زدایی
     console.log('Formatted Deadline for Backend:', formattedDeadline);
     console.log('Formatted Matches Dates for Backend:', formattedMatches.map(m => m.date));
 
@@ -72,18 +71,18 @@ function CreateTotoGame({ token, API_BASE_URL }) {
 
 
     try {
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      // بنابراین، نیازی به هدر Authorization یا تعیین کامل baseURL در اینجا نیست.
       const res = await axios.post(
-        `${API_BASE_URL}/admin/games/create`, // مسیر صحیح در بک‌اند شما
+        '/admin/games/create', // '/api' از ابتدای مسیر حذف شد
         {
           name: gameName,
           deadline: formattedDeadline, // استفاده از deadline فرمت شده
           matches: formattedMatches,   // استفاده از آرایه matches با تاریخ‌های فرمت شده
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
       setMessage(res.data.message || t('game_created_successfully'));
       // پاک کردن فرم پس از موفقیت
@@ -93,7 +92,7 @@ function CreateTotoGame({ token, API_BASE_URL }) {
     } catch (err) {
       // پیام خطای دریافتی از بک‌اند را نمایش می‌دهد
       setError(err.response?.data?.message || t('error_creating_game'));
-      // <--- اضافه شد: لاگ کردن جزئیات خطای پاسخ از بک‌اند
+      // لاگ کردن جزئیات خطای پاسخ از بک‌اند
       console.error('Error response from backend:', err.response?.data);
     } finally {
       setLoading(false);

@@ -1,12 +1,13 @@
 // toto-frontend-user/src/components/Deposit.js
 // کامپوننت برای عملیات واریز وجه
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
-import QRCode from 'react-qr-code'; // <--- این خط را اضافه کنید
+import QRCode from 'react-qr-code';
 
-function Deposit({ token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند
+function Deposit() {
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('crypto'); // پیش‌فرض: رمزارز
   const [cryptoCurrency, setCryptoCurrency] = useState('USDT');
@@ -27,15 +28,46 @@ function Deposit({ token, API_BASE_URL }) {
   // زمان پیش‌فرض برای انقضای پرداخت (مثلاً 15 دقیقه)
   const PAYMENT_EXPIRATION_SECONDS = 15 * 60;
 
+  // تابع پولینگ را داخل useCallback قرار می‌دهیم تا از ایجاد مکرر آن جلوگیری شود
+  const pollDepositStatus = useCallback(async (depositId) => {
+    try {
+      const res = await axios.get(`/users/crypto-deposits/${depositId}`); // مسیر اصلاح شد
+      const fetchedDeposit = res.data;
+
+      if (fetchedDeposit && fetchedDeposit.status === 'confirmed') {
+        setDepositStatus('confirmed');
+        setMessage(t('deposit_confirmed_success'));
+        clearInterval(countdownIntervalRef.current); // توقف شمارش معکوس
+        return true; // نشان می‌دهد که پولینگ باید متوقف شود
+      } else if (fetchedDeposit && fetchedDeposit.status === 'failed' || fetchedDeposit.status === 'expired') { // اضافه شدن 'expired' برای توقف پولینگ
+        setDepositStatus('failed');
+        setError(t('deposit_failed_message'));
+        clearInterval(countdownIntervalRef.current); // توقف شمارش معکوس
+        return true; // نشان می‌دهد که پولینگ باید متوقف شود
+      }
+      return false; // پولینگ ادامه یابد
+    } catch (err) {
+      console.error('Error polling crypto deposit status:', err.response?.data || err.message);
+      // در صورت خطای شبکه یا سرور، پولینگ را می‌توان متوقف کرد یا با تاخیر بیشتری ادامه داد
+      // برای سادگی، در اینجا پولینگ را متوقف نمی‌کنیم تا به خطاهای موقت پاسخ دهد.
+      return false;
+    }
+  }, [t]);
+
   useEffect(() => {
     if (depositInitiated && cryptoDepositId) {
+      // پاکسازی اینتروال قبلی در صورت وجود
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+
       // شروع شمارش معکوس
       setCountdown(PAYMENT_EXPIRATION_SECONDS);
       countdownIntervalRef.current = setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
             clearInterval(countdownIntervalRef.current);
-            setDepositStatus('expired');
+            setDepositStatus('expired'); // یا 'failed' بسته به منطق شما
             return 0;
           }
           return prev - 1;
@@ -44,38 +76,27 @@ function Deposit({ token, API_BASE_URL }) {
 
       // شروع پولینگ برای بررسی وضعیت واریز
       const pollingInterval = setInterval(async () => {
-        try {
-          const res = await axios.get(`${API_BASE_URL}/users/crypto-deposits/${cryptoDepositId}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const fetchedDeposit = res.data;
-
-          if (fetchedDeposit && fetchedDeposit.status === 'confirmed') {
-            setDepositStatus('confirmed');
-            setMessage(t('deposit_confirmed_success'));
-            clearInterval(pollingInterval);
-            clearInterval(countdownIntervalRef.current);
-          } else if (fetchedDeposit && fetchedDeposit.status === 'failed') {
-            setDepositStatus('failed');
-            setError(t('deposit_failed_message'));
-            clearInterval(pollingInterval);
-            clearInterval(countdownIntervalRef.current);
-          }
-          // اگر وضعیت هنوز pending یا processing است، پولینگ ادامه می‌یابد
-        } catch (err) {
-          console.error('Error polling crypto deposit status:', err);
-          // اگر خطایی در پولینگ رخ دهد، ممکن است ارتباط قطع شده باشد
-          // می‌توانید تصمیم بگیرید که آیا پولینگ را متوقف کنید یا ادامه دهید
+        const stopPolling = await pollDepositStatus(cryptoDepositId);
+        if (stopPolling) {
+          clearInterval(pollingInterval);
         }
       }, 10000); // هر 10 ثانیه یک بار بررسی کنید
 
       // پاکسازی اینتروال‌ها هنگام unmount شدن کامپوننت یا تغییر وضعیت
       return () => {
         clearInterval(pollingInterval);
-        clearInterval(countdownIntervalRef.current);
+        if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+        }
       };
     }
-  }, [depositInitiated, cryptoDepositId, API_BASE_URL, token, t]);
+    // پاکسازی اینتروال شمارش معکوس در صورتی که depositInitiated به false تغییر کند
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [depositInitiated, cryptoDepositId, PAYMENT_EXPIRATION_SECONDS, pollDepositStatus]); // pollDepositStatus به dependency array اضافه شد
 
   // فرمت کردن زمان برای نمایش
   const formatTime = (seconds) => {
@@ -90,15 +111,23 @@ function Deposit({ token, API_BASE_URL }) {
     setError('');
     setLoading(true);
 
+    // ریست وضعیت‌های واریز قبل از درخواست جدید
+    setDepositInitiated(false);
+    setDepositInfo(null);
+    setCryptoDepositId(null);
+    setDepositStatus('pending');
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    setCountdown(0);
+
+
     try {
+      // درخواست Axios: بدون هدر Authorization و با مسیر اصلاح شده
       const res = await axios.post(
-        `${API_BASE_URL}/users/deposit`,
+        '/users/deposit', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
         { amount: parseFloat(amount), method, cryptoCurrency, network },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        // نیازی به هدر Authorization نیست
       );
 
       if (method === 'crypto') {
@@ -113,6 +142,7 @@ function Deposit({ token, API_BASE_URL }) {
       }
     } catch (err) {
       setError(err.response?.data?.message || t('deposit_error'));
+      console.error('Deposit submission error:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
@@ -122,12 +152,12 @@ function Deposit({ token, API_BASE_URL }) {
     <div className="bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto my-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">{t('deposit_funds')}</h2>
 
-      {message && !depositInitiated && ( // پیام‌های کلی موفقیت‌آمیز
+      {message && !depositInitiated && (
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
           {message}
         </div>
       )}
-      {error && ( // پیام‌های خطا
+      {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
           {error}
         </div>
@@ -163,7 +193,6 @@ function Deposit({ token, API_BASE_URL }) {
             >
               <option value="crypto">{t('cryptocurrency')}</option>
               {/* <option value="manual">{t('manual_deposit')}</option> */}
-              {/* می‌توانید گزینه‌های درگاه پرداخت دیگر را اینجا اضافه کنید */}
             </select>
           </div>
 
@@ -181,7 +210,6 @@ function Deposit({ token, API_BASE_URL }) {
                 >
                   <option value="USDT">USDT</option>
                   <option value="BTC">BTC</option>
-                  {/* می‌توانید ارزهای دیگر را اضافه کنید */}
                 </select>
               </div>
               <div>
@@ -238,15 +266,13 @@ function Deposit({ token, API_BASE_URL }) {
                 </p>
 
 
-             
-
             {/* --- اضافه کردن کد QR اینجا --- */}
             {depositInfo.qrCodeUri && (
               <div className="mt-4 flex justify-center p-2 bg-white rounded-md shadow-sm">
                 <QRCode
                   value={depositInfo.qrCodeUri}
-                  size={180} // اندازه کد QR
-                  level="H" // سطح تصحیح خطا (High)
+                  size={180}
+                  level="H"
                   bgColor="#FFFFFF"
                   fgColor="#000000"
                 />
@@ -300,7 +326,7 @@ function Deposit({ token, API_BASE_URL }) {
                 setAmount('');
                 setMessage('');
                 setError('');
-                clearInterval(countdownIntervalRef.current); // اطمینان از پاکسازی اینتروال
+                clearInterval(countdownIntervalRef.current);
               }}
               className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-200"
             >

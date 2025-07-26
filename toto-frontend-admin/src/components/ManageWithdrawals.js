@@ -1,11 +1,13 @@
 // toto-frontend-admin/src/components/ManageWithdrawals.js
 // کامپوننت مدیریت درخواست‌های برداشت وجه برای ادمین
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function ManageWithdrawals({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function ManageWithdrawals() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [withdrawalRequests, setWithdrawalRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -16,26 +18,28 @@ function ManageWithdrawals({ token, API_BASE_URL }) {
   const [actionType, setActionType] = useState(''); // 'approve' or 'reject'
   const { t } = useLanguage();
 
-  const fetchWithdrawalRequests = async () => {
+  // تابع fetchWithdrawalRequests را داخل useCallback قرار می‌دهیم
+  const fetchWithdrawalRequests = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const res = await axios.get(`${API_BASE_URL}/admin/withdrawals`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      setMessage(''); // پیام‌ها هم باید قبل از هر fetch جدید پاک شوند
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/admin/withdrawals'); // '/api' از ابتدای مسیر حذف شد
       setWithdrawalRequests(res.data);
     } catch (err) {
       setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching withdrawal requests:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]); // t را به dependency array اضافه کنید
 
   useEffect(() => {
     fetchWithdrawalRequests();
-  }, [token, API_BASE_URL, t]);
+  }, [fetchWithdrawalRequests]); // fetchWithdrawalRequests را به dependency array اضافه کنید
 
   const handleAction = (requestId, type) => {
     setCurrentRequestId(requestId);
@@ -52,12 +56,14 @@ function ManageWithdrawals({ token, API_BASE_URL }) {
 
     try {
       let res;
-      // <--- تغییرات در اینجا اعمال شد: ارسال adminNotes به جای notes
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
       if (actionType === 'approve') {
         res = await axios.put(
-          `${API_BASE_URL}/admin/withdrawals/${currentRequestId}/approve`,
-          { adminNotes: notes }, // تغییر از { notes } به { adminNotes: notes }
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/admin/withdrawals/${currentRequestId}/approve`, // '/api' از ابتدای مسیر حذف شد
+          { adminNotes: notes },
+          // نیازی به هدر Authorization نیست
         );
       } else if (actionType === 'reject') {
         if (!notes.trim()) {
@@ -66,15 +72,16 @@ function ManageWithdrawals({ token, API_BASE_URL }) {
           return;
         }
         res = await axios.put(
-          `${API_BASE_URL}/admin/withdrawals/${currentRequestId}/reject`,
-          { adminNotes: notes }, // تغییر از { notes } به { adminNotes: notes }
-          { headers: { Authorization: `Bearer ${token}` } }
+          `/admin/withdrawals/${currentRequestId}/reject`, // '/api' از ابتدای مسیر حذف شد
+          { adminNotes: notes },
+          // نیازی به هدر Authorization نیست
         );
       }
       setMessage(res.data.message);
       fetchWithdrawalRequests(); // Refresh the list
     } catch (err) {
       setError(err.response?.data?.message || t('error_processing_request'));
+      console.error('Error processing withdrawal action:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }

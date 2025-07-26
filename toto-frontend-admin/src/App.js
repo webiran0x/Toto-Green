@@ -1,12 +1,8 @@
-// toto-frontend-admin/src/App.js
-// فایل اصلی اپلیکیشن React پنل مدیریت با React Router
-
 import React, { useState, useEffect } from 'react';
-// useNavigate فقط در کامپوننت‌هایی که فرزند <Router> هستند استفاده می‌شود
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// کامپوننت‌های موجود شما
+// کامپوننت‌ها
 import AdminLogin from './components/AdminLogin';
 import Dashboard from './components/Dashboard';
 import CreateTotoGame from './components/CreateTotoGame';
@@ -20,119 +16,128 @@ import ExternalApiSync from './components/ExternalApiSync';
 import SystemLogs from './components/SystemLogs';
 import ManageCryptoDeposits from './components/ManageCryptoDeposits';
 import Settings from './components/Settings';
-import ManageWithdrawals from './components/ManageWithdrawals'; // <--- اضافه شد
+import ManageWithdrawals from './components/ManageWithdrawals';
 
-
-// کامپوننت Header ادمین
 import AdminHeader from './components/AdminHeader';
 
-// Context زبان
+// زبان
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
-// کامپوننت ریشه با LanguageProvider
+// آدرس پایه API رو اینجا برای Axios به صورت سراسری تنظیم می‌کنیم.
+// این باعث میشه نیازی به تکرار 'https://lotto.green/api' در هر درخواست نباشه.
+// فرض می‌کنیم این URL از متغیر محیطی REACT_APP_API_BASE_URL میاد.
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lotto.green';
+
+// این خط بسیار مهمه: به Axios میگه که کوکی‌ها رو در درخواست‌ها ارسال کنه.
+// با توجه به اینکه بک‌اند شما از HttpOnly cookie استفاده می‌کنه، این تنظیم لازمه.
+axios.defaults.withCredentials = true;
+
 function RootApp() {
-  const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { t } = useLanguage();
-  const navigate = useNavigate(); // هوک useNavigate اکنون در داخل <Router> استفاده می‌شود
+  const navigate = useNavigate();
 
-  const API_BASE_URL = 'https://lotto.green/api';
-
- useEffect(() => {
-  const verifyAuth = async () => {
-    if (!token) {
-      setIsAuthenticated(false);
-      setLoadingAuth(false);
-      return;
-    }
-
-    try {
-      const res = await axios.get(`${API_BASE_URL}/admin/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache',
-        },
-      });
-      console.log('Admin profile response:', res.data);
-
-      if (res.data && res.data.role === 'admin') {
-        setIsAuthenticated(true);
-      } else {
-        setToken('');
-        localStorage.removeItem('adminToken');
+  // بررسی اعتبار با کوکی:
+  // این تابع بررسی می‌کنه که آیا کاربر فعلی (که کوکی رو داره) ادمین هست یا نه.
+  // اگه کوکی معتبر و شامل نقش ادمین باشه، کاربر احراز هویت شده در نظر گرفته میشه.
+  useEffect(() => {
+    const verifyAuth = async () => {
+      try {
+        // Axios به صورت خودکار کوکی احراز هویت رو (به خاطر axios.defaults.withCredentials = true) ارسال می‌کنه.
+        const res = await axios.get('/admin/profile'); // اینجا فقط '/api/admin/profile' کافیه چون baseURL تنظیم شده.
+        if (res.data?.role === 'admin') {
+          setIsAuthenticated(true);
+        } else {
+          // اگه کاربر نقش ادمین نداشت، حتی اگه لاگین کرده بود، خارجش می‌کنیم.
+          console.warn('User is authenticated but not an admin. Logging out.');
+          await axios.post('/auth/logout'); // پاک کردن کوکی
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        // اگه درخواست با خطا مواجه شد (مثلاً 401 Unauthorized چون کوکی معتبر نیست)،
+        // کاربر احراز هویت نشده تلقی میشه.
+        console.error('Auth verification failed:', error.response?.data?.message || error.message);
         setIsAuthenticated(false);
+      } finally {
+        setLoadingAuth(false);
       }
-    } catch (error) {
-      console.error('Admin token verification failed:', error);
-      setToken('');
-      localStorage.removeItem('adminToken');
-      setIsAuthenticated(false);
-    } finally {
-      setLoadingAuth(false);
-    }
-  };
-  verifyAuth();
-}, [token, API_BASE_URL]);
+    };
 
+    verifyAuth();
+  }, []); // این useEffect فقط یک بار هنگام بارگذاری کامپوننت اجرا میشه.
 
-  const handleLoginSuccess = (newToken) => {
-    setToken(newToken);
-    localStorage.setItem('adminToken', newToken);
+  // ورود موفق: این تابع وقتی AdminLogin با موفقیت کاربر رو لاگین کرد فراخوانی میشه.
+  // نیازی به دریافت توکن به عنوان آرگومان نداره، چون مدیریت کوکی خودکاره.
+  const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    navigate('/admin/dashboard', { replace: true }); // هدایت صریح به داشبورد
+    // بعد از ورود موفق، کاربر رو به داشبورد هدایت می‌کنیم.
+    navigate('/admin/dashboard', { replace: true });
   };
 
-  const handleLogout = () => {
-    setToken('');
-    localStorage.removeItem('adminToken');
+  // خروج ادمین: این تابع وقتی کاربر روی دکمه خروج کلیک می‌کنه فراخوانی میشه.
+  const handleLogout = async () => {
+    try {
+      // درخواست به بک‌اند برای پاک کردن کوکی احراز هویت
+      await axios.post('/auth/logout');
+    } catch (err) {
+      console.warn('Logout request failed (but continuing anyway):', err.message);
+      // حتی اگه خطایی در سمت سرور رخ داد، در فرانت‌اند وضعیت رو به حالت لاگ‌اوت تغییر میدیم.
+    }
     setIsAuthenticated(false);
-    navigate('/admin/login', { replace: true }); // هدایت به صفحه ورود پس از خروج
+    // کاربر رو به صفحه لاگین هدایت می‌کنیم.
+    navigate('/admin/login', { replace: true });
   };
 
+  // نمایش وضعیت بارگذاری اولیه
   if (loadingAuth) {
-    return <div className="flex items-center justify-center min-h-screen bg-gray-100">{t('loading')}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        {t('loading')}
+      </div>
+    );
   }
 
   return (
-    // <Router> از اینجا حذف شد و به کامپوننت App منتقل شد
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* AdminHeader حالا بر اساس isAuthenticated لینک‌ها را نمایش می‌دهد */}
+      {/* هدر ادمین که شامل دکمه خروج هم هست */}
       <AdminHeader isAuthenticated={isAuthenticated} onLogout={handleLogout} />
       <main className="flex-grow container mx-auto p-4">
         <Routes>
-          {/* مسیر پیش‌فرض: اگر isAuthenticated درست باشد به داشبورد، در غیر این صورت به لاگین */}
-          <Route path="/" element={isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/admin/login" replace />} />
+          {/* ریدایرکت از روت اصلی به مسیر /admin */}
+          <Route path="/" element={<Navigate to="/admin" replace />} />
+          {/* مدیریت مسیر /admin: اگه لاگین کرده، به داشبورد برو، وگرنه به لاگین */}
           <Route path="/admin" element={isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <Navigate to="/admin/login" replace />} />
 
-          {/* مسیر ورود ادمین */}
+          {/* صفحه لاگین: اگه کاربر لاگین کرده باشه، به داشبورد هدایت میشه */}
           <Route
             path="/admin/login"
-            element={isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin onLoginSuccess={handleLoginSuccess} API_BASE_URL={API_BASE_URL} />}
+            element={isAuthenticated ? <Navigate to="/admin/dashboard" replace /> : <AdminLogin onLoginSuccess={handleLoginSuccess} />}
           />
 
-          {/* مسیرهای محافظت شده برای ادمین */}
+          {/* صفحات محافظت‌شده: فقط در صورتی قابل دسترسی هستند که کاربر احراز هویت شده باشه */}
           {isAuthenticated ? (
             <>
-              <Route path="/admin/dashboard" element={<Dashboard token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/users" element={<ManageUsers token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/users/:userId" element={<EditUser token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/games/create" element={<CreateTotoGame token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/games/set-results" element={<SetResults token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/games/view-predictions" element={<ViewPredictions token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/games/all" element={<AllTotoGames token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/transactions" element={<ManageTransactions token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/manage-withdrawals" element={<ManageWithdrawals token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/external-sync" element={<ExternalApiSync token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/system-logs" element={<SystemLogs token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/settings" element={<Settings token={token} API_BASE_URL={API_BASE_URL} />} />
-              <Route path="/admin/crypto-deposits" element={<ManageCryptoDeposits token={token} API_BASE_URL={API_BASE_URL} />} />
+              <Route path="/admin/dashboard" element={<Dashboard />} /> {/* API_BASE_URL دیگه لازم نیست به عنوان پراپ پاس داده بشه */}
+              <Route path="/admin/users" element={<ManageUsers />} />
+              <Route path="/admin/users/:userId" element={<EditUser />} />
+              <Route path="/admin/games/create" element={<CreateTotoGame />} />
+              <Route path="/admin/games/set-results" element={<SetResults />} />
+              <Route path="/admin/games/view-predictions" element={<ViewPredictions />} />
+              <Route path="/admin/games/all" element={<AllTotoGames />} />
+              <Route path="/admin/transactions" element={<ManageTransactions />} />
+              <Route path="/admin/manage-withdrawals" element={<ManageWithdrawals />} />
+              <Route path="/admin/external-sync" element={<ExternalApiSync />} />
+              <Route path="/admin/system-logs" element={<SystemLogs />} />
+              <Route path="/admin/settings" element={<Settings />} />
+              <Route path="/admin/crypto-deposits" element={<ManageCryptoDeposits />} />
             </>
           ) : (
+            // اگه احراز هویت نشده بود، همه مسیرهای زیر /admin رو به صفحه لاگین ریدایرکت می‌کنیم
             <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
           )}
 
-          {/* مسیر 404 برای هر مسیر ناموجود دیگر */}
+          {/* مدیریت خطای 404 (صفحه یافت نشد) */}
           <Route path="*" element={<h2 className="text-center text-red-500 text-3xl font-bold mt-20">{t('page_not_found')}</h2>} />
         </Routes>
       </main>
@@ -140,11 +145,11 @@ function RootApp() {
   );
 }
 
-// رندر کردن RootApp با LanguageProvider
+// LanguageProvider و Router رو در روت اصلی اپلیکیشن قرار میدیم تا برای همه کامپوننت‌ها در دسترس باشند.
 function App() {
   return (
     <LanguageProvider>
-      <Router> {/* <--- Router به اینجا منتقل شد تا RootApp را دربر بگیرد */}
+      <Router>
         <RootApp />
       </Router>
     </LanguageProvider>

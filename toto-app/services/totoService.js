@@ -6,17 +6,36 @@ const Prediction = require('../models/Prediction');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const calculateScore = require('../utils/calculateScore');
-const logger = require('../utils/logger');
+const logger = require('../utils/logger'); // سیستم لاگ‌گیری
 
 const REFERRAL_COMMISSION_PERCENTAGE = 0.05; // 5% از اولین مبلغ فرم کاربر دعوت شده
+const DEFAULT_COMMISSION_PERCENTAGE = 0.15; // درصد پیش‌فرض کمیسیون (15%)
+
 
 /**
  * بستن بازی‌های Toto که مهلت آن‌ها گذشته است.
- * این تابع باید توسط یک زمان‌بند (cron job) فراخوانی شود.
+ * این تابع باید توسط یک زمان‌سنج (cron job) فراخوانی شود.
  */
 const closeExpiredTotoGames = async () => {
     try {
         const now = new Date();
+        logger.info(`Cron Job: closeExpiredTotoGames started at ${now.toISOString()}`);
+
+        // --- لاگ‌های اشکال‌زدایی بیشتر برای زمان و بازی‌های باز ---
+        logger.info(`Cron Job Debug: Current server UTC time: ${now.toISOString()}`);
+        logger.info(`Cron Job Debug: Current server Local time: ${now.toLocaleString()}`);
+
+        const allOpenGames = await TotoGame.find({ status: 'open' });
+        if (allOpenGames.length > 0) {
+            logger.info(`Cron Job Debug: Found ${allOpenGames.length} games with status 'open'. Details:`);
+            allOpenGames.forEach(game => {
+                logger.info(`  - Game ID: ${game._id}, Name: "${game.name}", Deadline: ${game.deadline.toISOString()}`);
+            });
+        } else {
+            logger.info('Cron Job Debug: No games found with status "open".');
+        }
+        // --- پایان لاگ‌های اشکال‌زدایی ---
+
         // یافتن بازی‌هایی که status آنها 'open' است و deadline آنها گذشته است
         const expiredGames = await TotoGame.find({
             status: 'open',
@@ -24,11 +43,15 @@ const closeExpiredTotoGames = async () => {
         });
 
         if (expiredGames.length === 0) {
-            logger.info('No expired Toto games to close.');
+            logger.info('Cron Job: No expired Toto games to close found.');
             return;
         }
 
+        logger.info(`Cron Job: Found ${expiredGames.length} expired Toto games to close.`);
+
         for (const game of expiredGames) {
+            logger.info(`Cron Job: Processing game "${game.name}" (ID: ${game._id}). Current status: ${game.status}, Deadline: ${game.deadline.toISOString()}`);
+
             game.status = 'closed';
             // همچنین، isClosed را برای تمام بازی‌های زیر-سند (matches) تنظیم کنید
             game.matches.forEach(match => {
@@ -39,7 +62,7 @@ const closeExpiredTotoGames = async () => {
             const predictionsInGame = await Prediction.find({ totoGame: game._id });
             const totalPotForGame = predictionsInGame.reduce((sum, prediction) => sum + prediction.price, 0);
 
-            const COMMISSION_PERCENTAGE = game.commissionPercentage;
+            const COMMISSION_PERCENTAGE = DEFAULT_COMMISSION_PERCENTAGE; 
             const FIRST_PLACE_PERCENTAGE = 0.70;
             const SECOND_PLACE_PERCENTAGE = 0.20;
             const THIRD_PLACE_PERCENTAGE = 0.10;
@@ -53,136 +76,186 @@ const closeExpiredTotoGames = async () => {
             game.prizes.thirdPlace = game.prizePool * THIRD_PLACE_PERCENTAGE;
 
             await game.save();
-            logger.info(`Toto Game "${game.name}" (ID: ${game._id}) has been closed. Total Pot: ${game.totalPot} USDT`); // به USDT تغییر یافت
+            logger.info(`Cron Job: Toto Game "${game.name}" (ID: ${game._id}) successfully closed. New status: ${game.status}. Total Pot: ${game.totalPot} USDT`);
         }
+        logger.info('Cron Job: closeExpiredTotoGames finished successfully.');
     } catch (error) {
-        logger.error('Error closing expired Toto games:', error);
+        logger.error('Cron Job: Error closing expired Toto games:', error);
     }
 };
 
 /**
  * پردازش نتایج یک بازی Toto و امتیازدهی به پیش‌بینی‌های کاربران و توزیع جوایز.
  * این تابع باید پس از ثبت نتایج نهایی یک بازی توسط ادمین فراخوانی شود.
- * @param {string} totoGameId - ID بازی Toto که نتایج آن ثبت شده است.
+ * @param {object} totoGame - آبجکت کامل بازی Toto.
+ * @returns {object} - آبجکتی شامل success, message و آبجکت totoGame به‌روز شده.
  */
-const processTotoGameResults = async (totoGameId) => {
+const processTotoGameResults = async (totoGame) => { // پارامتر به آبجکت کامل totoGame تغییر یافت
     try {
-        const totoGame = await TotoGame.findById(totoGameId);
-
-        if (!totoGame) {
-            logger.error(`Toto Game with ID ${totoGameId} not found for scoring.`);
-            return { success: false, message: 'بازی Toto یافت نشد.' };
+        // اگر تابع از adminController فراخوانی می‌شود، totoGame قبلاً از دیتابیس لود شده است.
+        // نیازی به findById مجدد نیست.
+        if (!totoGame || !totoGame._id) {
+            logger.error(`processTotoGameResults: Toto Game object is invalid or not provided for scoring.`);
+            return { success: false, message: 'بازی Toto نامعتبر است.' };
         }
 
-        // بررسی کنید که همه بازی‌های زیر-سند دارای نتیجه هستند
         const allMatchesHaveResults = totoGame.matches.every(match => match.result !== null || match.isCancelled);
 
         if (!allMatchesHaveResults) {
-            logger.warn(`Not all matches in Toto Game "${totoGame.name}" have results yet. Skipping scoring.`);
+            logger.warn(`processTotoGameResults: Not all matches in Toto Game "${totoGame.name}" have results yet. Skipping scoring.`);
             return { success: false, message: 'هنوز نتایج همه بازی‌ها ثبت نشده است.' };
         }
 
         if (totoGame.status === 'completed') {
-            logger.info(`Toto Game "${totoGame.name}" (ID: ${totoGame._id}) already completed and scored.`);
-            return { success: true, message: 'این بازی قبلاً امتیازدهی شده است.' };
+            logger.info(`processTotoGameResults: Toto Game "${totoGame.name}" (ID: ${totoGame._id}) already completed and scored.`);
+            return { success: true, message: 'این بازی قبلاً امتیازدهی شده است.', totoGame }; // totoGame را برگردان
         }
         if (totoGame.status === 'cancelled') {
-            logger.warn(`Toto Game "${totoGame.name}" (ID: ${totoGame._id}) is cancelled. Skipping scoring.`);
+            logger.warn(`processTotoGameResults: Toto Game "${totoGame.name}" (ID: ${totoGame._id}) is cancelled. Skipping scoring.`);
             return { success: false, message: 'این بازی لغو شده است، امتیازدهی انجام نمی‌شود.' };
         }
 
-        // یافتن تمام پیش‌بینی‌های مرتبط با این بازی Toto که هنوز امتیازدهی نشده‌اند
         const predictionsToScore = await Prediction.find({
-            totoGame: totoGameId,
+            totoGame: totoGame._id, // استفاده از ID بازی
             isScored: false,
             isRefunded: false
         }).populate('user');
 
         if (predictionsToScore.length === 0) {
-            logger.info(`No unscored predictions found for Toto Game "${totoGame.name}".`);
+            logger.info(`processTotoGameResults: No unscored predictions found for Toto Game "${totoGame.name}".`);
             totoGame.status = 'completed';
             await totoGame.save();
-            return { success: true, message: 'هیچ پیش‌بینی‌ای برای امتیازدهی یافت نشد.' };
+            return { success: true, message: 'هیچ پیش‌بینی‌ای برای امتیازدهی یافت نشد.', totoGame }; // totoGame را برگردان
         }
 
         let scoredPredictions = [];
         for (const prediction of predictionsToScore) {
             const userScore = calculateScore(prediction, totoGame);
 
-            // به‌روزرسانی امتیاز در مدل Prediction
             prediction.score = userScore;
             prediction.isScored = true;
             await prediction.save();
             scoredPredictions.push(prediction);
 
-            // به‌روزرسانی امتیاز کلی کاربر
             if (prediction.user) {
                 prediction.user.score += userScore;
                 await prediction.user.save();
-                logger.info(`User ${prediction.user.username} scored ${userScore} for Prediction ID: ${prediction._id}`);
+                logger.info(`processTotoGameResults: User ${prediction.user.username} scored ${userScore} for Prediction ID: ${prediction._id}`);
             }
         }
 
-        // تعیین برندگان و توزیع جوایز
         const sortedUsersByScore = scoredPredictions
             .filter(p => p.user)
             .sort((a, b) => b.score - a.score)
             .map(p => ({ user: p.user, score: p.score }));
 
-        // یافتن برندگان نفر اول
         const firstPlaceScore = sortedUsersByScore.length > 0 ? sortedUsersByScore[0].score : 0;
         const firstPlaceWinners = sortedUsersByScore.filter(u => u.score === firstPlaceScore && firstPlaceScore > 0).map(u => u.user._id);
 
-        // یافتن برندگان نفر دوم
         const remainingForSecond = sortedUsersByScore.filter(u => u.score < firstPlaceScore);
         const secondPlaceScore = remainingForSecond.length > 0 ? remainingForSecond[0].score : 0;
-        const secondPlaceWinners = remainingForSecond.filter(u => u.score === secondPlaceScore && secondPlaceScore > 0).map(u => u.user._id);
+        const secondPlaceWinners = remainingForSecond.length > 0 ? remainingForSecond.filter(u => u.score === secondPlaceScore && secondPlaceScore > 0).map(u => u.user._id) : [];
 
-        // یافتن برندگان نفر سوم
         const remainingForThird = remainingForSecond.filter(u => u.score < secondPlaceScore);
         const thirdPlaceScore = remainingForThird.length > 0 ? remainingForThird[0].score : 0;
-        const thirdPlaceWinners = remainingForThird.filter(u => u.score === thirdPlaceScore && thirdPlaceScore > 0).map(u => u.user._id);
+        const thirdPlaceWinners = remainingForThird.length > 0 ? remainingForThird.filter(u => u.score === thirdPlaceScore && thirdPlaceScore > 0).map(u => u.user._id) : [];
 
-        // ذخیره برندگان در مدل TotoGame
         totoGame.winners.first = firstPlaceWinners;
         totoGame.winners.second = secondPlaceWinners;
         totoGame.winners.third = thirdPlaceWinners;
 
-        // پس از امتیازدهی همه پیش‌بینی‌ها، وضعیت بازی را به 'completed' تغییر دهید
+        const prizePool = totoGame.prizePool;
+        const firstPlacePrize = totoGame.prizes.firstPlace;
+        const secondPlacePrize = totoGame.prizes.secondPlace;
+        const thirdPlacePrize = totoGame.prizes.thirdPlace;
+
+       await Promise.all(firstPlaceWinners.map(async (winnerId) => {
+            const prizePerWinner = firstPlacePrize / firstPlaceWinners.length;
+            for (const winnerId of firstPlaceWinners) {
+                const winner = await User.findById(winnerId);
+                if (winner) {
+                    winner.balance += prizePerWinner;
+                    await winner.save();
+                    await Transaction.create({
+                        user: winner._id,
+                        amount: prizePerWinner,
+                        type: 'prize_payout',
+                        description: `جایزه نفر اول بازی: ${totoGame.name} (USDT)`,
+                        relatedEntity: totoGame._id
+                    });
+                    logger.info(`processTotoGameResults: Awarded ${prizePerWinner} USDT to first place winner ${winner.username} (ID: ${winner._id}) for game ${totoGame.name}.`);
+                }
+            }
+        }));
+
+        if (secondPlaceWinners.length > 0 && secondPlacePrize > 0) {
+            const prizePerWinner = secondPlacePrize / secondPlaceWinners.length;
+            for (const winnerId of secondPlaceWinners) {
+                const winner = await User.findById(winnerId);
+                if (winner) {
+                    winner.balance += prizePerWinner;
+                    await winner.save();
+                    await Transaction.create({
+                        user: winner._id,
+                        amount: prizePerWinner,
+                        type: 'prize_payout',
+                        description: `جایزه نفر دوم بازی: ${totoGame.name} (USDT)`,
+                        relatedEntity: totoGame._id
+                    });
+                    logger.info(`processTotoGameResults: Awarded ${prizePerWinner} USDT to second place winner ${winner.username} (ID: ${winner._id}) for game ${totoGame.name}.`);
+                }
+            }
+        }
+
+        if (thirdPlaceWinners.length > 0 && thirdPlacePrize > 0) {
+            const prizePerWinner = thirdPlacePrize / thirdPlaceWinners.length;
+            for (const winnerId of thirdPlaceWinners) {
+                const winner = await User.findById(winnerId);
+                if (winner) {
+                    winner.balance += prizePerWinner;
+                    await winner.save();
+                    await Transaction.create({
+                        user: winner._id,
+                        amount: prizePerWinner,
+                        type: 'prize_payout',
+                        description: `جایزه نفر سوم بازی: ${totoGame.name} (USDT)`,
+                        relatedEntity: totoGame._id
+                    });
+                    logger.info(`processTotoGameResults: Awarded ${prizePerWinner} USDT to third place winner ${winner.username} (ID: ${winner._id}) for game ${totoGame.name}.`);
+                }
+            }
+        }
+
         totoGame.status = 'completed';
         await totoGame.save();
 
-        logger.info(`Scoring and winner determination completed for Toto Game "${totoGame.name}" (ID: ${totoGame._id}).`);
-        return { success: true, message: 'امتیازدهی و تعیین برندگان با موفقیت انجام شد.' };
+        logger.info(`processTotoGameResults: Scoring and winner determination completed for Toto Game "${totoGame.name}" (ID: ${totoGame._id}). Game status: COMPLETED.`);
+        return { success: true, message: 'امتیازدهی و تعیین برندگان با موفقیت انجام شد.', totoGame }; // totoGame به‌روز شده را برگردان
     } catch (error) {
-        logger.error(`Error processing Toto Game results for ID ${totoGameId}:`, error);
-        return { success: false, message: 'خطا در پردازش نتایج بازی.' };
+        logger.error(`processTotoGameResults: Error processing Toto Game results for ID ${totoGame._id}:`, error);
+        return { success: false, message: 'خطا در پردازش نتایج بازی.', error: error.message }; // پیام خطا را هم برگردان
     }
 };
 
-/**
- * مدیریت لغو بازی و بازپرداخت مبالغ فرم‌ها به کاربران.
- * @param {string} totoGameId - ID بازی Toto که لغو شده است.
- */
 const handleGameCancellationAndRefunds = async (totoGameId) => {
     try {
         const totoGame = await TotoGame.findById(totoGameId);
         if (!totoGame) {
-            logger.error(`Toto Game with ID ${totoGameId} not found for cancellation/refund.`);
+            logger.error(`handleGameCancellationAndRefunds: Toto Game with ID ${totoGameId} not found for cancellation/refund.`);
             return { success: false, message: 'بازی Toto یافت نشد.' };
         }
 
         if (totoGame.isRefunded) {
-            logger.warn(`Refunds for Toto Game "${totoGame.name}" (ID: ${totoGame._id}) already processed.`);
+            logger.warn(`handleGameCancellationAndRefunds: Refunds for Toto Game "${totoGame.name}" (ID: ${totoGame._id}) already processed.`);
             return { success: false, message: 'بازپرداخت این بازی قبلاً انجام شده است.' };
         }
 
-        // یافتن تمام پیش‌بینی‌های ثبت شده برای این بازی
         const predictionsToRefund = await Prediction.find({ totoGame: totoGameId, isRefunded: false }).populate('user');
 
         if (predictionsToRefund.length === 0) {
-            logger.info(`No predictions to refund for Toto Game "${totoGame.name}".`);
+            logger.info(`handleGameCancellationAndRefunds: No predictions to refund for Toto Game "${totoGame.name}".`);
             totoGame.isRefunded = true;
+            totoGame.status = 'cancelled'; // اطمینان از تغییر وضعیت به cancelled
             await totoGame.save();
             return { success: true, message: 'هیچ پیش‌بینی‌ای برای بازپرداخت یافت نشد.' };
         }
@@ -195,77 +268,68 @@ const handleGameCancellationAndRefunds = async (totoGameId) => {
                 prediction.isRefunded = true;
                 await prediction.save();
 
-                // ثبت تراکنش بازپرداخت
                 await Transaction.create({
                     user: prediction.user._id,
                     amount: prediction.price,
                     type: 'refund',
-                    description: `بازپرداخت مبلغ فرم برای بازی لغو شده: ${totoGame.name} (USDT)`, // به USDT تغییر یافت
+                    description: `بازپرداخت مبلغ فرم برای بازی لغو شده: ${totoGame.name} (USDT)`,
                     relatedEntity: totoGame._id
                 });
-                logger.info(`Refunded ${prediction.price} USDT to user ${prediction.user.username} for prediction ID: ${prediction._id}.`); // به USDT تغییر یافت
+                logger.info(`handleGameCancellationAndRefunds: Refunded ${prediction.price} USDT to user ${prediction.user.username} for prediction ID: ${prediction._id}.`);
             } else {
-                logger.warn(`Prediction ID ${prediction._id} has no associated user for refund.`);
+                logger.warn(`handleGameCancellationAndRefunds: Prediction ID ${prediction._id} has no associated user for refund.`);
             }
         }
 
         totoGame.isRefunded = true;
+        totoGame.status = 'cancelled'; // اطمینان از تغییر وضعیت به cancelled
         await totoGame.save();
-        logger.info(`Refunds completed for Toto Game "${totoGame.name}" (ID: ${totoGame._id}).`);
+        logger.info(`handleGameCancellationAndRefunds: Refunds and cancellation completed for Toto Game "${totoGame.name}" (ID: ${totoGame._id}).`);
         return { success: true, message: 'بازپرداخت مبالغ با موفقیت انجام شد.' };
     } catch (error) {
-        logger.error(`Error handling game cancellation and refunds for ID ${totoGameId}: ${error.message}`);
+        logger.error(`handleGameCancellationAndRefunds: Error handling game cancellation and refunds for ID ${totoGameId}: ${error.message}`);
         return { success: false, message: 'خطا در بازپرداخت مبالغ فرم.' };
     }
 };
 
-/**
- * اعطای کمیسیون ارجاع به معرف.
- * این تابع باید پس از اولین ثبت فرم توسط کاربر دعوت شده فراخوانی شود.
- * @param {string} referredUserId - ID کاربر دعوت شده.
- * @param {number} firstFormPrice - قیمت اولین فرمی که کاربر دعوت شده ثبت کرده است.
- */
 const awardReferralCommission = async (referredUserId, firstFormPrice) => {
     try {
         const referredUser = await User.findById(referredUserId).populate('referrer');
 
         if (!referredUser || !referredUser.referrer) {
-            logger.info(`User ${referredUserId} has no referrer, skipping referral commission.`);
+            logger.info(`awardReferralCommission: User ${referredUserId} has no referrer, skipping referral commission.`);
             return { success: false, message: 'کاربر معرف ندارد.' };
         }
 
-        // بررسی کنید که این اولین فرم کاربر است
         const userPredictionsCount = await Prediction.countDocuments({ user: referredUserId });
         if (userPredictionsCount > 1) {
-            logger.info(`User ${referredUser.username} (ID: ${referredUserId}) has already submitted forms. Skipping referral commission.`);
+            logger.info(`awardReferralCommission: User ${referredUser.username} (ID: ${referredUserId}) has already submitted forms. Skipping referral commission.`);
             return { success: false, message: 'این اولین فرم کاربر دعوت شده نیست.' };
         }
 
         const referrerUser = await User.findById(referredUser.referrer._id);
         if (!referrerUser) {
-            logger.error(`Referrer user with ID ${referredUser.referrer._id} not found for awarding commission.`);
+            logger.error(`awardReferralCommission: Referrer user with ID ${referredUser.referrer._id} not found for awarding commission.`);
             return { success: false, message: 'کاربر معرف یافت نشد.' };
         }
 
         const commissionAmount = firstFormPrice * REFERRAL_COMMISSION_PERCENTAGE;
 
-        // واریز کمیسیون به حساب معرف
         referrerUser.balance += commissionAmount;
         await referrerUser.save();
 
-        // ثبت تراکنش کمیسیون ارجاع
         await Transaction.create({
             user: referrerUser._id,
             amount: commissionAmount,
             type: 'referral_commission',
-            description: `دریافت کمیسیون ارجاع از اولین فرم ${referredUser.username} (USDT)`, // به USDT تغییر یافت
+            description: `دریافت کمیسیون ارجاع از اولین فرم ${referredUser.username} (USDT)`,
             relatedEntity: referredUser._id
         });
-        logger.info(`Awarded ${commissionAmount} USDT referral commission to ${referrerUser.username} (ID: ${referrerUser._id}) from ${referredUser.username}'s first form.`); // به USDT تغییر یافت
+        logger.info(`awardReferralCommission: Awarded ${commissionAmount} USDT referral commission to ${referrerUser.username} (ID: ${referrerUser._id}) from ${referredUser.username}'s first form.`);
         return { success: true, message: 'کمیسیون ارجاع با موفقیت پرداخت شد.' };
 
     } catch (error) {
-        logger.error(`Error awarding referral commission for user ${referredUserId}: ${error.message}`);
+        logger.error(`awardReferralCommission: Error awarding referral commission for user ${referredUserId}: ${error.message}`);
         return { success: false, message: 'خطا در پرداخت کمیسیون ارجاع.' };
     }
 };

@@ -1,9 +1,11 @@
 // src/components/SetResults.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
 import { useLanguage } from '../contexts/LanguageContext';
 
-function SetResults({ token, API_BASE_URL }) {
+// نیازی نیست token و API_BASE_URL به عنوان پراپ پاس داده شوند.
+// axios.defaults.baseURL و axios.defaults.withCredentials در App.js تنظیم شده‌اند.
+function SetResults() { // 'token' و 'API_BASE_URL' از پراپس حذف شدند
   const [totoGames, setTotoGames] = useState([]);
   const [selectedGameId, setSelectedGameId] = useState('');
   const [matchesToSetResults, setMatchesToSetResults] = useState([]);
@@ -13,26 +15,34 @@ function SetResults({ token, API_BASE_URL }) {
   const [gamesLoading, setGamesLoading] = useState(true);
   const { t } = useLanguage();
 
+  // تابع fetchTotoGames را داخل useCallback قرار می‌دهیم
+  const fetchTotoGames = useCallback(async () => {
+    try {
+      setGamesLoading(true);
+      setError('');
+      setMessage(''); // پیام‌ها هم باید قبل از هر fetch جدید پاک شوند
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
+      const res = await axios.get('/admin/totos'); // '/api' از ابتدای مسیر حذف شد
+      setTotoGames(res.data);
+    } catch (err) {
+      setError(err.response?.data?.message || t('error_fetching_data'));
+      console.error('Error fetching Toto games:', err.response?.data || err.message); // لاگ برای اشکال‌زدایی
+    } finally {
+      setGamesLoading(false);
+    }
+  }, [t]); // t را به dependency array اضافه کنید
+
   useEffect(() => {
-    const fetchTotoGames = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/admin/totos`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTotoGames(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || t('error_fetching_data'));
-      } finally {
-        setGamesLoading(false);
-      }
-    };
     fetchTotoGames();
-  }, [token, API_BASE_URL, t]);
+  }, [fetchTotoGames]); // fetchTotoGames را به dependency array اضافه کنید
 
   useEffect(() => {
     if (selectedGameId) {
       const selectedGame = totoGames.find(game => game._id === selectedGameId);
       if (selectedGame) {
+        // فیلتر کردن بازی‌هایی که نتیجه ندارند و لغو نشده‌اند
         const matchesWithoutResult = selectedGame.matches.filter(match => match.result === null && !match.isCancelled);
         setMatchesToSetResults(matchesWithoutResult.map(match => ({
           matchId: match._id,
@@ -76,23 +86,29 @@ function SetResults({ token, API_BASE_URL }) {
     console.log('Sending results:', resultsToSend);
 
     try {
+      // درخواست Axios:
+      // baseURL از axios.defaults.baseURL در App.js گرفته می‌شود.
+      // کوکی‌ها به خاطر axios.defaults.withCredentials = true ارسال می‌شوند.
       const res = await axios.put(
-        `${API_BASE_URL}/admin/games/set-results/${selectedGameId}`,
+        `/admin/games/set-results/${selectedGameId}`, // '/api' از ابتدای مسیر حذف شد
         { results: resultsToSend },
-        { headers: { Authorization: `Bearer ${token}` } }
+        // نیازی به هدر Authorization نیست
       );
 
       console.log('Response from server:', res.data);
 
       setMessage(res.data.message || '');
+      // به‌روزرسانی لیست بازی‌ها با داده‌های جدید از پاسخ سرور
       setTotoGames(prev =>
         prev.map(game => (game._id === res.data.totoGame._id ? res.data.totoGame : game))
       );
 
+      // اگر تمام نتایج ثبت شده باشند، فرم رو خالی می‌کنیم
       if (res.data.status === 'complete') {
         setSelectedGameId('');
         setMatchesToSetResults([]);
       } else {
+        // در غیر این صورت، فقط بازی‌هایی که هنوز نتیجه ندارند رو نگه می‌داریم
         const remaining = res.data.totoGame.matches.filter(m => !m.result && !m.isCancelled);
         setMatchesToSetResults(remaining.map(match => ({
           matchId: match._id,

@@ -3,10 +3,11 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLanguage } from '../contexts/LanguageContext'; // فرض کنید LanguageContext دارید
-import { useLocation } from 'react-router-dom'; // برای خواندن پارامترهای URL
+import { useLanguage } from '../contexts/LanguageContext';
+import { useLocation } from 'react-router-dom';
 
-function Auth({ onLoginSuccess, API_BASE_URL }) {
+// API_BASE_URL از پراپس حذف شد
+function Auth({ onLoginSuccess, initialReferrerUsername }) { // initialReferrerUsername اضافه شد
   const [isLogin, setIsLogin] = useState(true); // true for login, false for register
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -21,13 +22,12 @@ function Auth({ onLoginSuccess, API_BASE_URL }) {
 
   useEffect(() => {
     // خواندن پارامتر 'ref' از URL هنگام بارگذاری کامپوننت
-    const queryParams = new URLSearchParams(location.search);
-    const ref = queryParams.get('ref');
-    if (ref) {
-      setReferrerUsername(ref);
+    // این بخش از AuthWrapper به اینجا منتقل شد تا Auth به initialReferrerUsername دسترسی داشته باشد
+    if (initialReferrerUsername) {
+      setReferrerUsername(initialReferrerUsername);
       setIsLogin(false); // اگر لینک معرف باشد، به صورت پیش‌فرض به تب ثبت‌نام بروید
     }
-  }, [location.search]);
+  }, [initialReferrerUsername]); // initialReferrerUsername به dependency array اضافه شد
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,8 +38,11 @@ function Auth({ onLoginSuccess, API_BASE_URL }) {
     try {
       if (isLogin) {
         // Login
-        const res = await axios.post(`${API_BASE_URL}/auth/login`, { username, password });
-        onLoginSuccess(res.data.token);
+        // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+        await axios.post('/auth/login', { username, password });
+        // نیازی به دریافت و ذخیره توکن در localStorage نیست،
+        // مرورگر کوکی HttpOnly را به صورت خودکار مدیریت می‌کند.
+        onLoginSuccess(); // فقط اعلام موفقیت لاگین
       } else {
         // Register
         if (password !== confirmPassword) {
@@ -47,7 +50,8 @@ function Auth({ onLoginSuccess, API_BASE_URL }) {
           setLoading(false);
           return;
         }
-        const res = await axios.post(`${API_BASE_URL}/auth/register`, { username, email, password, referrerUsername });
+        // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+        await axios.post('/auth/register', { username, email, password, referrerUsername });
         setMessage(t('registration_success'));
         setIsLogin(true); // پس از ثبت نام موفق به صفحه ورود هدایت شوید
         // پاک کردن فیلدها
@@ -59,6 +63,7 @@ function Auth({ onLoginSuccess, API_BASE_URL }) {
       }
     } catch (err) {
       setError(err.response?.data?.message || t('operation_error'));
+      console.error('Auth operation error:', err.response?.data || err.message); // برای اشکال‌زدایی
     } finally {
       setLoading(false);
     }

@@ -1,11 +1,9 @@
-// toto-frontend-landing/src/sections/OpenGamesPredictionSection.js
+// toto-frontend-landing/src/sections/OpenGamesPredictionSection.jsx
 // این کامپوننت بازی‌های فعال را نمایش می‌دهد و امکان پیش‌بینی را فراهم می‌کند.
 // در صورت عدم احراز هویت، کاربر را به پنل کاربری هدایت می‌کند.
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback اضافه شد
 import axios from 'axios';
-  const [submitting, setSubmitting] = useState(false);
-
 
 // توجه: در Landing Page، ما به useLanguage دسترسی نداریم.
 // بنابراین، پیام‌ها را مستقیماً به فارسی/انگلیسی (یا فقط فارسی) می‌نویسیم.
@@ -50,72 +48,55 @@ const t = (key, params = {}) => {
 };
 
 
-function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
+// token و API_BASE_URL از پراپس حذف شدند.
+// isAuthenticated هنوز نیاز است تا لاگین کاربر بررسی شود.
+function OpenGamesPredictionSection({ isAuthenticated }) {
   const [openGames, setOpenGames] = useState([]);
   const [selectedGame, setSelectedGame] = useState(null);
-  const [predictions, setPredictions] = useState({}); // { matchId: [outcome1, outcome2] }
+  const [predictions, setPredictions] = useState({});
   const [formPrice, setFormPrice] = useState(0);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // State برای کنترل مودال خطا
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [modalErrorMessage, setModalErrorMessage] = useState('');
 
-  const FORM_BASE_COST = 1; // هزینه پایه برای هر ترکیب
+  const FORM_BASE_COST = 1;
+
+  // تابع fetchOpenGames را داخل useCallback قرار می‌دهیم
+  const fetchOpenGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      setMessage('');
+      // درخواست Axios: baseURL از axios.defaults.baseURL در App.jsx گرفته می‌شود.
+      // بنابراین، نیازی به API_BASE_URL در اینجا نیست.
+      const res = await axios.get('/totos/open'); // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+      setOpenGames(res.data);
+    } catch (err) {
+      console.error("Error fetching open games for landing page:", err.response?.data || err.message);
+      setError(t('error_fetching_data'));
+      // Fallback to mock data
+      setOpenGames([
+          { _id: 'mock-game-1', name: 'مسابقه نمونه لندینگ ۱', deadline: new Date(Date.now() + 86400000 * 2).toISOString(), status: 'open',
+            matches: Array(15).fill(null).map((_, i) => ({ _id: `match1_${i+1}`, homeTeam: `تیم ${i+1}م`, awayTeam: `تیم ${i+1}ه`, date: new Date(Date.now() + 86400000 * (1 + i/10)).toISOString() })),
+            totalPot: 1000, prizes: {firstPlace: 700, secondPlace: 200, thirdPlace: 100}, winners: {first:[], second:[], third:[]}
+          },
+          { _id: 'mock-game-2', name: 'مسابقه نمونه لندینگ ۲', deadline: new Date(Date.now() + 86400000 * 5).toISOString(), status: 'open',
+            matches: Array(15).fill(null).map((_, i) => ({ _id: `match2_${i+1}`, homeTeam: `تیم ${i+1}م`, awayTeam: `تیم ${i+1}ه`, date: new Date(Date.now() + 86400000 * (4 + i/10)).toISOString() })),
+            totalPot: 500, prizes: {firstPlace: 350, secondPlace: 100, thirdPlace: 50}, winners: {first:[], second:[], third:[]}
+          }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }, []); // useCallback بدون وابستگی خارجی به prop
 
   useEffect(() => {
-    const fetchOpenGames = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const res = await axios.get(`${API_BASE_URL}/totos/open`); // بدون نیاز به توکن برای خواندن بازی‌های باز
-        setOpenGames(res.data);
-      } catch (err) {
-        console.error("Error fetching open games for landing page:", err);
-        setError(t('error_fetching_data'));
-        // Fallback to mock data if API call fails
-        setOpenGames([
-            {
-                _id: 'mock-game-1',
-                name: 'مسابقه نمونه لندینگ ۱',
-                deadline: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
-                matches: [
-                    { _id: 'match1_1', homeTeam: 'تیم آ', awayTeam: 'تیم ب', date: new Date(Date.now() + 86400000 * 1).toISOString() },
-                    { _id: 'match1_2', homeTeam: 'تیم ج', awayTeam: 'تیم د', date: new Date(Date.now() + 86400000 * 1.5).toISOString() },
-                    { _id: 'match1_3', homeTeam: 'تیم ه', awayTeam: 'تیم و', date: new Date(Date.now() + 86400000 * 1.8).toISOString() },
-                    { _id: 'match1_4', homeTeam: 'تیم ز', awayTeam: 'تیم ح', date: new Date(Date.now() + 86400000 * 1.9).toISOString() },
-                    { _id: 'match1_5', homeTeam: 'تیم ط', awayTeam: 'تیم ی', date: new Date(Date.now() + 86400000 * 2).toISOString() },
-                    { _id: 'match1_6', homeTeam: 'تیم ک', awayTeam: 'تیم ل', date: new Date(Date.now() + 86400000 * 2.1).toISOString() },
-                    { _id: 'match1_7', homeTeam: 'تیم م', awayTeam: 'تیم ن', date: new Date(Date.now() + 86400000 * 2.2).toISOString() },
-                    { _id: 'match1_8', homeTeam: 'تیم س', awayTeam: 'تیم ع', date: new Date(Date.now() + 86400000 * 2.3).toISOString() },
-                    { _id: 'match1_9', homeTeam: 'تیم ف', awayTeam: 'تیم ق', date: new Date(Date.now() + 86400000 * 2.4).toISOString() },
-                    { _id: 'match1_10', homeTeam: 'تیم ر', awayTeam: 'تیم ش', date: new Date(Date.now() + 86400000 * 2.5).toISOString() },
-                    { _id: 'match1_11', homeTeam: 'تیم ص', awayTeam: 'تیم ض', date: new Date(Date.now() + 86400000 * 2.6).toISOString() },
-                    { _id: 'match1_12', homeTeam: 'تیم ط', awayTeam: 'تیم ظ', date: new Date(Date.now() + 86400000 * 2.7).toISOString() },
-                    { _id: 'match1_13', homeTeam: 'تیم ع', awayTeam: 'تیم غ', date: new Date(Date.now() + 86400000 * 2.8).toISOString() },
-                    { _id: 'match1_14', homeTeam: 'تیم ف', awayTeam: 'تیم ق', date: new Date(Date.now() + 86400000 * 2.9).toISOString() },
-                    { _id: 'match1_15', homeTeam: 'تیم ک', awayTeam: 'تیم گ', date: new Date(Date.now() + 86400000 * 3).toISOString() },
-                ]
-            },
-            {
-                _id: 'mock-game-2',
-                name: 'مسابقه نمونه لندینگ ۲',
-                deadline: new Date(Date.now() + 86400000 * 5).toISOString(), // 5 days from now
-                matches: [
-                    { _id: 'match2_1', homeTeam: 'تیم A', awayTeam: 'تیم B', date: new Date(Date.now() + 86400000 * 4).toISOString() },
-                    { _id: 'match2_2', homeTeam: 'تیم C', awayTeam: 'تیم D', date: new Date(Date.now() + 86400000 * 4.5).toISOString() },
-                ]
-            }
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOpenGames();
-  }, [API_BASE_URL]); // فقط با تغییر API_BASE_URL اجرا شود
+  }, [fetchOpenGames]); // fetchOpenGames به dependency array اضافه شد
 
   useEffect(() => {
     let calculatedCombinations = 1;
@@ -125,7 +106,7 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
         if (outcomes && outcomes.length > 0) {
           calculatedCombinations *= outcomes.length;
         } else {
-          calculatedCombinations *= 1; // اگر هیچ انتخابی نبود، 1 ترکیب در نظر گرفته شود (اجباری نیست)
+          calculatedCombinations *= 1;
         }
       });
       setFormPrice(calculatedCombinations * FORM_BASE_COST);
@@ -163,15 +144,14 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
     setError('');
     setSubmitting(true);
 
+    // --- منطق بررسی احراز هویت (بدون توکن در جاوااسکریپت) ---
     if (!isAuthenticated) {
-        // اگر کاربر لاگین نیست، به پنل کاربری هدایت شود
         setModalErrorMessage(t('login_to_predict'));
         setShowErrorModal(true);
         setSubmitting(false);
-        // هدایت به صفحه ورود پنل کاربری
-        window.location.href = 'https://panel.lotto.green/auth'; // <--- URL پنل کاربری
-        return;
+        return; // جلوگیری از ادامه
     }
+    // --- پایان منطق بررسی احراز هویت ---
 
     if (!selectedGame) {
       setModalErrorMessage(t('select_game_for_prediction_error'));
@@ -189,7 +169,7 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
           );
           setShowErrorModal(true);
           setSubmitting(false);
-          throw new Error('Not all matches predicted'); // برای خروج از تابع try/catch
+          throw new Error('Validation failed: Not all matches predicted');
         }
         return {
           matchId: match._id,
@@ -197,12 +177,12 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
         };
       });
 
+      // ارسال درخواست پیش‌بینی.
+      // Axios به طور خودکار کوکی‌ها را (به خاطر axios.defaults.withCredentials = true) ارسال می‌کند.
       await axios.post(
-        `${API_BASE_URL}/totos/predict`,
-        { totoGameId: selectedGame._id, predictions: formattedPredictions },
-        {
-          headers: { Authorization: `Bearer ${token}` }, // توکن برای ارسال پیش‌بینی ضروری است
-        }
+        '/totos/predict', // مسیر اصلاح شد: '/api/' از ابتدای مسیر حذف شد
+        { totoGameId: selectedGame._id, predictions: formattedPredictions, price: formPrice },
+        // نیازی به هدر Authorization نیست.
       );
 
       setMessage(t('prediction_submitted_success'));
@@ -211,8 +191,7 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
       setFormPrice(0);
 
     } catch (err) {
-      if (err.message === 'Not all matches predicted') {
-        // خطا را در مودال مدیریت کردیم، فقط از تابع خارج می‌شویم.
+      if (err.message === 'Validation failed: Not all matches predicted') {
         return;
       }
       setError(err.response?.data?.message || t('error_submitting_prediction'));
@@ -328,7 +307,7 @@ function OpenGamesPredictionSection({ isAuthenticated, token, API_BASE_URL }) {
         </form>
       )}
 
-      {/* مودال خطا */}
+      {/* Error Modal */}
       {showErrorModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
