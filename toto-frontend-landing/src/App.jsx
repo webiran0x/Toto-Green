@@ -9,10 +9,12 @@ axios.defaults.withCredentials = true;
 
 function App() {
   const [lastGame, setLastGame] = useState(null);
-  const [upcomingGames, setUpcomingGames] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [upcomingGames, setUpcomingGames] = useState([]); // This will be fetched by UpcomingGamesSection now
+  const [loadingApp, setLoadingApp] = useState(true); // Loading state for App.jsx's own data (lastGame)
   const [globalError, setGlobalError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // New state to manage which game's form is displayed in OpenGamesPredictionSection
+  const [selectedGameForPrediction, setSelectedGameForPrediction] = useState(null);
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -34,16 +36,17 @@ function App() {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
-  const fetchGameData = useCallback(async () => {
-    setLoading(true);
+  // Fetch only last completed game in App.jsx
+  const fetchLastGameData = useCallback(async () => {
+    setLoadingApp(true);
     setGlobalError(null);
-    let hasError = false;
-
     try {
-      const lastGameRes = await axios.get('/totos/last-finished-game');
+      // Corrected API endpoint based on backend analysis: /totos/last-completed for last finished game
+      const lastGameRes = await axios.get('/totos/last-completed'); 
       setLastGame(lastGameRes.data);
     } catch (err) {
       console.error("Error fetching last completed game data:", err);
+      // Fallback mock data for lastGame
       setLastGame({
         name: 'بازی نمونه (خطا در بارگذاری)',
         matches: [{
@@ -64,31 +67,14 @@ function App() {
         updatedAt: new Date().toISOString()
       });
       setGlobalError("اطلاعات آخرین بازی تکمیل شده با خطا بارگذاری شد.");
-      hasError = true;
+    } finally {
+      setLoadingApp(false);
     }
-
-    try {
-      const upcomingRes = await axios.get('/totos/open');
-      setUpcomingGames(upcomingRes.data);
-    } catch (err) {
-      console.error("Error fetching upcoming games data:", err);
-      setUpcomingGames([{
-        _id: 'mock1',
-        name: 'مسابقه نمونه آتی (خطا در بارگذاری)',
-        deadline: new Date(Date.now() + 86400000 * 5).toISOString(),
-        status: 'open',
-        matches: []
-      }]);
-      setGlobalError(prev => (prev ? prev + " و " : "") + "اطلاعات بازی‌های آتی با خطا بارگذاری شد.");
-      hasError = true;
-    }
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchGameData();
-  }, [fetchGameData]);
+    fetchLastGameData();
+  }, [fetchLastGameData]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 text-white flex flex-col items-center justify-center font-inter">
@@ -108,57 +94,52 @@ function App() {
         </div>
       </header>
 
-      <main className="flex-grow flex flex-col items-center justify-center text-center px-4 py-20 w-full max-w-6xl mx-auto z-0 relative">
-        <h2 className="text-6xl font-extrabold text-white mb-6 leading-tight drop-shadow-lg">
-          به دنیای هیجان‌انگیز پیش‌بینی ورزشی بپیوندید!
-        </h2>
-        <p className="text-2xl text-blue-200 max-w-3xl mb-10 drop-shadow-md">
-          با پلتفرم توتو، نتایج بازی‌ها را پیش‌بینی کنید و جوایز بزرگ ببرید.
-          هیجان بازی‌ها را با ما تجربه کنید!
-        </p>
-        <a
-          href="https://panel.lotto.green/register"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-12 rounded-full text-xl shadow-xl transition duration-300 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-purple-300"
-        >
-          شروع کنید!
-        </a>
-      </main>
-
-      <div className="container mx-auto px-4 py-8 flex flex-col gap-8 w-full max-w-6xl z-0">
-        {loading && (
+      <main className="flex-grow flex flex-col items-center justify-start text-center px-4 py-20 w-full max-w-6xl mx-auto z-0 relative">
+        {/* Loading and Error Messages for App.jsx's own data */}
+        {loadingApp && (
           <div className="text-center text-lg text-blue-200 py-8">
             در حال بارگذاری اطلاعات بازی‌ها...
           </div>
         )}
 
         {globalError && (
-          <div className="bg-red-800 bg-opacity-70 border border-red-500 text-red-200 px-4 py-3 rounded relative mb-4 shadow-lg">
+          <div className="bg-red-800 bg-opacity-70 border border-red-500 text-red-200 px-4 py-3 rounded relative mb-4 shadow-lg w-full">
             {globalError}
           </div>
         )}
 
-        {!loading && (
-          <>
-            {lastGame && (
-              <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20">
-                <LastGameSection lastGame={lastGame} />
-              </div>
-            )}
+        {!loadingApp && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+            {/* Main Content: Open Games (col-span-2 on large screens) */}
+            <div className="lg:col-span-2 bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20 flex flex-col h-full">
+              {/* Pass selectedGameForPrediction and its setter to OpenGamesPredictionSection */}
+              <OpenGamesPredictionSection 
+                isAuthenticated={isAuthenticated} 
+                selectedGame={selectedGameForPrediction}
+                setSelectedGame={setSelectedGameForPrediction} // Pass the setter
+              />
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20">
-                <OpenGamesPredictionSection isAuthenticated={isAuthenticated} />
+            {/* Sidebars: Upcoming and Last Game */}
+            <div className="lg:col-span-1 flex flex-col gap-8">
+              {/* Sidebar 1: Upcoming Games */}
+              <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20 flex-grow">
+                {/* Pass the setter to UpcomingGamesSection */}
+                <UpcomingGamesSection 
+                  onSelectGame={setSelectedGameForPrediction} // Pass the setter
+                />
               </div>
 
-              {upcomingGames.length > 0 && (
-                <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20">
-                  <UpcomingGamesSection upcomingGames={upcomingGames} />
+              {/* Sidebar 2: Last Game */}
+              {lastGame && (
+                <div className="bg-white bg-opacity-10 p-6 rounded-xl shadow-2xl backdrop-blur-sm border border-white border-opacity-20 flex-grow">
+                  <LastGameSection lastGame={lastGame} />
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
-      </div>
+      </main>
 
       <footer className="w-full bg-black bg-opacity-40 text-blue-200 py-4 mt-auto text-sm text-center shadow-inner">
         <div className="container mx-auto px-4">

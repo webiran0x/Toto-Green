@@ -10,11 +10,52 @@ import {
   ExclamationCircleIcon, // آیکون خطا
   ClockIcon, // آیکون در انتظار
   ArrowPathIcon, // آیکون پردازش
-  XCircleIcon // آیکون لغو
+  XCircleIcon, // آیکون لغو
+  ClipboardDocumentListIcon, // آیکون برای کپی
+  InformationCircleIcon // آیکون جدید برای تولتیپ
 } from '@heroicons/react/24/outline'; // استفاده از Heroicons برای آیکون‌ها
 
-// token و API_BASE_URL از پراپس حذف شدند، زیرا axios.defaults.baseURL در App.js تنظیم شده است.
-function Deposit() {
+// کامپوننت Tooltip جدید و بهینه شده
+const Tooltip = ({ children, text, position = 'top' }) => {
+  const [show, setShow] = useState(false);
+  let positionClasses = '';
+
+  // تعیین موقعیت تولتیپ
+  switch (position) {
+    case 'top':
+      positionClasses = '-top-8 left-1/2 -translate-x-1/2';
+      break;
+    case 'bottom':
+      positionClasses = 'top-full left-1/2 -translate-x-1/2 mt-2';
+      break;
+    case 'left':
+      positionClasses = 'right-full top-1/2 -translate-y-1/2 mr-2';
+      break;
+    case 'right':
+      positionClasses = 'left-full top-1/2 -translate-y-1/2 ml-2';
+      break;
+    default:
+      positionClasses = '-top-8 left-1/2 -translate-x-1/2';
+  }
+
+  return (
+    <div className="relative flex items-center justify-center"
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {children}
+      {show && (
+        <div className={`absolute z-50 p-2 text-xs text-white bg-gray-800 rounded-md shadow-lg whitespace-nowrap opacity-0 animate-fadeIn ${positionClasses}`}>
+          {text}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+// کامپوننت Deposit با دریافت currentTheme به عنوان پراپ
+function Deposit({ currentTheme }) { // <--- currentTheme به پراپس اضافه شد
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('crypto'); // پیش‌فرض: رمزارز
   const [cryptoCurrency, setCryptoCurrency] = useState('USDT');
@@ -84,7 +125,7 @@ function Deposit() {
         if (stopPolling) {
           clearInterval(pollingInterval);
         }
-      }, 10000);
+      }, 10000); // هر 10 ثانیه یک بار پولینگ
 
       return () => {
         clearInterval(pollingInterval);
@@ -148,7 +189,7 @@ function Deposit() {
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors && Array.isArray(err.response.data.errors)) {
-        setError(err.response.data.errors.join(', '));
+        setError(err.response.data.errors.map(e => e.msg || e.message).join(', '));
       } else {
         setError(err.response?.data?.message || t('deposit_error'));
       }
@@ -158,40 +199,65 @@ function Deposit() {
     }
   };
 
+  const handleCopyAddress = () => {
+    if (depositInfo && depositInfo.walletAddress) {
+      // استفاده از navigator.clipboard.writeText برای مدرن‌ترین روش کپی
+      navigator.clipboard.writeText(depositInfo.walletAddress)
+        .then(() => {
+          setMessage(t('address_copied'));
+          setTimeout(() => setMessage(''), 2000);
+        })
+        .catch(err => {
+          console.error('Failed to copy text: ', err);
+          // Fallback برای مرورگرهای قدیمی‌تر
+          const el = document.createElement('textarea');
+          el.value = depositInfo.walletAddress;
+          document.body.appendChild(el);
+          el.select();
+          document.execCommand('copy');
+          document.body.removeChild(el);
+          setMessage(t('address_copied'));
+          setTimeout(() => setMessage(''), 2000);
+        });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-3xl w-full max-w-md transform transition-all duration-300 hover:scale-[1.01] border-4 border-blue-200">
-        <h2 className="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+    // اعمال کلاس‌های تم به کانتینر اصلی
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 font-inter overflow-hidden transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 p-6 sm:p-7 rounded-2xl shadow-xl w-full max-w-md border border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <h2 className="text-3xl font-extrabold text-gray-800 dark:text-white mb-4 text-center">
           {t('deposit_funds')}
         </h2>
 
+        {/* توضیحات در بالای فرم */}
+        <p className="text-gray-600 dark:text-gray-400 text-center mb-6 leading-relaxed text-sm">
+          {t('deposit_form_description')}
+        </p>
+
         {message && !depositInitiated && (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-4 animate-fadeIn">
-            <div className="flex items-center">
-              <CheckCircleIcon className="h-6 w-6 text-green-500 mr-3" />
-              <p className="font-medium">{message}</p>
-            </div>
+          <div className="bg-green-50 dark:bg-green-900 border-l-4 border-green-400 dark:border-green-700 text-green-800 dark:text-green-200 p-3 rounded-lg mb-4 animate-fadeIn flex items-center text-sm">
+            <CheckCircleIcon className="h-5 w-5 text-green-500 dark:text-green-400 mr-2" />
+            <p className="font-medium">{message}</p>
           </div>
         )}
         {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4 animate-fadeIn">
-            <div className="flex items-center">
-              <ExclamationCircleIcon className="h-6 w-6 text-red-500 mr-3" />
-              <p className="font-medium">{error}</p>
-            </div>
+          <div className="bg-red-50 dark:bg-red-900 border-l-4 border-red-400 dark:border-red-700 text-red-800 dark:text-red-200 p-3 rounded-lg mb-4 animate-fadeIn flex items-center text-sm">
+            <ExclamationCircleIcon className="h-5 w-5 text-red-500 dark:text-red-400 mr-2" />
+            <p className="font-medium">{error}</p>
           </div>
         )}
 
         {!depositInitiated ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5"> 
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="amount" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"> 
                 {t('amount')}:
               </label>
               <input
                 type="number"
                 id="amount"
-                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 text-lg transition duration-200 ease-in-out"
+                className="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-2.5 text-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out placeholder-gray-400 dark:placeholder-gray-500" 
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
@@ -202,20 +268,20 @@ function Deposit() {
             </div>
 
             <div>
-              <label htmlFor="method" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="method" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 {t('deposit_method')}:
               </label>
               <div className="relative">
                 <select
                   id="method"
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 text-lg appearance-none bg-white transition duration-200 ease-in-out pr-10"
+                  className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-2.5 text-sm appearance-none bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out pr-10"
                   value={method}
                   onChange={(e) => setMethod(e.target.value)}
                 >
                   <option value="crypto">{t('cryptocurrency')}</option>
                   {/* <option value="manual">{t('manual_deposit')}</option> */}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
                   <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                 </div>
               </div>
@@ -224,13 +290,13 @@ function Deposit() {
             {method === 'crypto' && (
               <>
                 <div>
-                  <label htmlFor="cryptoCurrency" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="cryptoCurrency" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     {t('currency')}:
                   </label>
                   <div className="relative">
                     <select
                       id="cryptoCurrency"
-                      className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 text-lg appearance-none bg-white transition duration-200 ease-in-out pr-10"
+                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-2.5 text-sm appearance-none bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out pr-10"
                       value={cryptoCurrency}
                       onChange={(e) => {
                         setCryptoCurrency(e.target.value);
@@ -244,19 +310,23 @@ function Deposit() {
                       <option value="USDT">USDT</option>
                       <option value="BTC">BTC</option>
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
                       <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="network" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="network" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 flex items-center">
                     {t('network')}:
+                    {/* اضافه کردن تولتیپ به کنار Label شبکه */}
+                    <Tooltip text={t('network_tooltip_text')} position="right">
+                      <InformationCircleIcon className="h-4 w-4 ml-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition duration-200 cursor-help" />
+                    </Tooltip>
                   </label>
                   <div className="relative">
                     <select
                       id="network"
-                      className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 text-lg appearance-none bg-white transition duration-200 ease-in-out pr-10"
+                      className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-2.5 text-sm appearance-none bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out pr-10"
                       value={network}
                       onChange={(e) => setNetwork(e.target.value)}
                     >
@@ -271,7 +341,7 @@ function Deposit() {
                         <option value="BTC">Bitcoin</option>
                       )}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
                       <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                   </div>
@@ -281,12 +351,12 @@ function Deposit() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold py-3 px-6 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed text-xl shadow-lg"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold py-2.5 px-5 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition duration-300 ease-in-out transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-base shadow-md" 
               disabled={loading}
             >
               {loading ? (
                 <span className="flex items-center justify-center">
-                  <ArrowPathIcon className="animate-spin h-5 w-5 mr-3" /> {t('processing')}
+                  <ArrowPathIcon className="animate-spin h-5 w-5 mr-2" /> {t('processing')}
                 </span>
               ) : (
                 t('deposit')
@@ -294,99 +364,94 @@ function Deposit() {
             </button>
           </form>
         ) : (
-          <div className="mt-6 p-6 rounded-xl shadow-inner border-2 border-blue-100 bg-blue-50 animate-fadeIn">
+          <div className="mt-6 p-5 rounded-xl shadow-md border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900 animate-fadeIn text-sm transition-colors duration-300">
             {depositStatus === 'pending' && (
               <div className="text-center">
-                <ClockIcon className="h-12 w-12 text-blue-500 mx-auto mb-4 animate-pulse" />
-                <p className="text-xl font-semibold text-gray-800 mb-2">{t('waiting_for_payment')}</p>
-                <p className="text-md text-gray-600 mb-4">{t('send_exact_amount_to_address')}</p>
+                <ClockIcon className="h-10 w-10 text-blue-500 dark:text-blue-400 mx-auto mb-3 animate-pulse" />
+                <p className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1.5">{t('waiting_for_payment')}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{t('send_exact_amount_to_address')}</p>
 
-                <div className="bg-white p-5 rounded-lg shadow-md border border-gray-200 mb-4">
-                  <p className="text-gray-700 text-lg mb-2">
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-600 mb-3 transition-colors duration-300">
+                  <p className="text-gray-700 dark:text-gray-200 text-base mb-1.5">
                     <span className="font-medium">{t('expected_amount')}:</span>{' '}
-                    <span className="font-bold text-blue-600">
+                    <span className="font-bold text-blue-600 dark:text-blue-400">
                       {depositInfo.expectedAmount} {depositInfo.cryptoCurrency.split('-')[0]}
                     </span>
                   </p>
-                  <p className="text-gray-700 break-all text-md mb-3">
+                  <div className="flex items-center justify-between text-gray-700 dark:text-gray-200 break-all text-sm mb-2">
                     <span className="font-medium">{t('deposit_address')}:</span>{' '}
-                    <span className="font-bold text-blue-600">{depositInfo.walletAddress}</span>
-                  </p>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 ml-1 break-words">{depositInfo.walletAddress}</span>
+                  </div>
 
                   {depositInfo.qrCodeUri && (
-                    <div className="mt-4 flex justify-center p-2 bg-white rounded-md shadow-sm">
+                    <div className="mt-3 flex justify-center p-2 bg-white dark:bg-gray-600 rounded-md shadow-inner transition-colors duration-300">
                       <QRCode
                         value={depositInfo.qrCodeUri}
-                        size={180}
+                        size={160}
                         level="H"
-                        bgColor="#FFFFFF"
-                        fgColor="#000000"
+                        bgColor={currentTheme === 'dark' ? '#374151' : '#FFFFFF'} // رنگ پس‌زمینه QR در دارک مود
+                        fgColor={currentTheme === 'dark' ? '#FFFFFF' : '#000000'} // رنگ پیش‌زمینه QR در دارک مود
                         className="rounded-lg shadow-inner"
                       />
                     </div>
                   )}
-                  <p className="text-gray-700 text-md mt-3">
+                  <p className="text-gray-700 dark:text-gray-200 text-sm mt-3">
                     <span className="font-medium">{t('network')}:</span>{' '}
-                    <span className="font-bold text-blue-600">{depositInfo.cryptoCurrency.split('-')[1]}</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400">{depositInfo.cryptoCurrency.split('-')[1]}</span>
                   </p>
-                  <button
-                    onClick={() => {
-                      const el = document.createElement('textarea');
-                      el.value = depositInfo.walletAddress;
-                      document.body.appendChild(el);
-                      el.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(el);
-                      setMessage(t('address_copied'));
-                    }}
-                    className="mt-4 bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-2 px-4 rounded-lg text-sm transition duration-200 shadow-sm hover:shadow-md"
-                  >
-                    {t('copy_address')}
-                  </button>
+                  {/* اضافه کردن تولتیپ به دکمه کپی آدرس */}
+                  <Tooltip text={t('copy_address_tooltip')} position="bottom">
+                    <button
+                      onClick={handleCopyAddress}
+                      className="mt-3 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 text-blue-800 dark:text-blue-200 font-bold py-1.5 px-3 rounded-lg text-xs transition duration-200 shadow-sm hover:shadow-md flex items-center justify-center mx-auto" 
+                    >
+                      <ClipboardDocumentListIcon className="h-4 w-4 mr-1.5" /> {t('copy_address')}
+                    </button>
+                  </Tooltip>
                 </div>
 
                 {countdown > 0 && (
-                  <p className="text-red-500 text-lg font-bold animate-pulse">
+                  <p className="text-red-500 dark:text-red-400 text-base font-bold animate-pulse"> 
                     {t('time_remaining')}: {formatTime(countdown)}
                   </p>
                 )}
                 {countdown === 0 && depositStatus === 'expired' && (
-                  <p className="text-red-600 text-lg font-bold">{t('payment_expired')}</p>
+                  <p className="text-red-600 dark:text-red-500 text-base font-bold">{t('payment_expired')}</p> 
                 )}
               </div>
             )}
 
             {depositStatus === 'confirmed' && (
-              <div className="text-center text-green-700 font-bold text-xl animate-scaleIn">
-                <CheckCircleIcon className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <div className="text-center text-green-700 dark:text-green-200 font-bold text-lg animate-scaleIn">
+                <CheckCircleIcon className="h-14 w-14 text-green-500 dark:text-green-400 mx-auto mb-3" />
                 <p>{t('deposit_confirmed_success')}</p>
-                <p className="text-md text-gray-600 mt-2">{t('balance_updated_shortly')}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1.5">{t('balance_updated_shortly')}</p>
               </div>
             )}
 
             {depositStatus === 'failed' && (
-              <div className="text-center text-red-700 font-bold text-xl animate-scaleIn">
-                <ExclamationCircleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <div className="text-center text-red-700 dark:text-red-200 font-bold text-lg animate-scaleIn">
+                <ExclamationCircleIcon className="h-14 w-14 text-red-500 dark:text-red-400 mx-auto mb-3" />
                 <p>{t('deposit_failed_message')}</p>
-                <p className="text-md text-gray-600 mt-2">{t('please_try_again')}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1.5">{t('please_try_again')}</p>
               </div>
             )}
             {depositStatus === 'expired' && (
-              <div className="text-center text-red-700 font-bold text-xl animate-scaleIn">
-                <ClockIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <div className="text-center text-red-700 dark:text-red-200 font-bold text-lg animate-scaleIn">
+                <ClockIcon className="h-14 w-14 text-red-500 dark:text-red-400 mx-auto mb-3" />
                 <p>{t('payment_expired')}</p>
-                <p className="text-md text-gray-600 mt-2">{t('please_try_again')}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1.5">{t('please_try_again')}</p>
               </div>
             )}
             {depositStatus === 'cancelled' && (
-              <div className="text-center text-red-700 font-bold text-xl animate-scaleIn">
-                <XCircleIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <div className="text-center text-red-700 dark:text-red-200 font-bold text-lg animate-scaleIn">
+                <XCircleIcon className="h-14 w-14 text-red-500 dark:text-red-400 mx-auto mb-3" />
                 <p>{t('deposit_cancelled_message')}</p>
-                <p className="text-md text-gray-600 mt-2">{t('please_try_again')}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1.5">{t('please_try_again')}</p>
               </div>
             )}
 
-            <div className="mt-6 text-center">
+            <div className="mt-5 text-center">
               <button
                 onClick={() => {
                   setDepositInitiated(false);
@@ -398,7 +463,7 @@ function Deposit() {
                   setError('');
                   clearInterval(countdownIntervalRef.current);
                 }}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg text-xl"
+                className="bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-800 text-white font-bold py-2.5 px-5 rounded-lg transition duration-200 shadow-md hover:shadow-lg text-base focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800" 
               >
                 {t('start_new_deposit')}
               </button>

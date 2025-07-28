@@ -17,8 +17,8 @@ const NavItem = ({ icon: Icon, textKey, to, onClick }) => {
     <Link
       to={to}
       onClick={onClick}
-      // استایل‌های Tailwind CSS برای ظاهر حرفه‌ای و واکنش‌گرا
-      className="flex items-center px-4 py-2 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200 ease-in-out font-medium text-base md:text-lg whitespace-nowrap"
+      // استایل‌های Tailwind CSS برای ظاهر حرفه‌ای و واکنش‌گرا با پشتیبانی از تم تیره
+      className="flex items-center px-4 py-2 text-white hover:bg-blue-700 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 ease-in-out font-medium text-base md:text-lg whitespace-nowrap"
     >
       {/* نمایش آیکون در صورت وجود */}
       {Icon && <Icon className="w-5 h-5 mr-3" />}

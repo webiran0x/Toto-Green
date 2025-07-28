@@ -72,10 +72,10 @@ function ExpiredGames() {
   // تابع برای دریافت کلاس‌های CSS بر اساس وضعیت بازی
   const getGameStatusClasses = (status) => {
     switch (status) {
-      case 'closed': return 'bg-orange-100 text-orange-800';
-      case 'completed': return 'bg-purple-100 text-purple-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'closed': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+      case 'completed': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
     }
   };
 
@@ -89,54 +89,55 @@ function ExpiredGames() {
     }
   };
 
-  if (loading) return <div className="text-center py-8 text-gray-700">{t('loading')}</div>;
-  if (error) return <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-center">{error}</div>;
+  if (loading) return <div className="text-center py-8 text-gray-700 dark:text-gray-300">{t('loading')}</div>;
+  if (error) return <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded relative mb-4 text-center">{error}</div>;
 
   return (
-    <div className="mt-10 p-4 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">{t('expired_games_title')}</h2>
+    // اعمال کلاس‌های تم به کانتینر اصلی و اضافه کردن overflow-x-hidden
+    <div className="mt-10 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md transition-colors duration-300 overflow-x-hidden">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 text-center">{t('expired_games_title')}</h2>
       {games.length === 0 && !loading ? (
-        <p className="text-gray-600 text-center py-4">{t('no_expired_games')}</p>
+        <p className="text-gray-600 dark:text-gray-400 text-center py-4">{t('no_expired_games')}</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {games.map((game) => (
-              <div key={game._id} className="bg-gray-50 p-5 rounded-xl shadow-lg border border-gray-200 flex flex-col transform transition-transform duration-300 hover:scale-[1.02] animate-fadeIn">
+              <div key={game._id} className="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-600 flex flex-col transform transition-transform duration-300 hover:scale-[1.02] animate-fadeIn transition-colors duration-300">
                 <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xl font-bold text-gray-800">{game.name}</h3>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white">{game.name}</h3>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center ${getGameStatusClasses(game.status)}`}>
                     {getGameStatusIcon(game.status)} {t(`status_${game.status}`)}
                   </span>
                 </div>
                 
-                <p className="text-gray-700 text-sm mb-1">
+                <p className="text-gray-700 dark:text-gray-300 text-sm mb-1">
                   {t('deadline')}: {new Date(game.deadline).toLocaleString('fa-IR')}
                 </p>
                 
                 {/* اطلاعات مالی و تعداد فرم‌ها */}
-                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
                     <div className="flex items-center">
-                        <CurrencyDollarIcon className="h-4 w-4 text-blue-500 mr-1" />
+                        <CurrencyDollarIcon className="h-4 w-4 text-blue-500 dark:text-blue-400 mr-1" />
                         <span className="font-medium">{t('total_pot')}:</span> {game.totalPot?.toLocaleString('fa-IR') || 0} {t('usdt')}
                     </div>
                     <div className="flex items-center">
-                        <TrophyIcon className="h-4 w-4 text-yellow-500 mr-1" />
+                        <TrophyIcon className="h-4 w-4 text-yellow-500 dark:text-yellow-400 mr-1" />
                         <span className="font-medium">{t('prize_pool')}:</span> {game.prizePool?.toLocaleString('fa-IR') || 0} {t('usdt')}
                     </div>
                     <div className="flex items-center">
-                        <CurrencyDollarIcon className="h-4 w-4 text-purple-500 mr-1" />
+                        <CurrencyDollarIcon className="h-4 w-4 text-purple-500 dark:text-purple-400 mr-1" />
                         <span className="font-medium">{t('commission_amount')}:</span> {game.commissionAmount?.toLocaleString('fa-IR') || 0} {t('usdt')}
                     </div>
                     {/* --- جدید: تعداد فرم‌های شرکت داده شده --- */}
                     <div className="flex items-center">
-                        <ClipboardDocumentListIcon className="h-4 w-4 text-gray-600 mr-1" />
+                        <ClipboardDocumentListIcon className="h-4 w-4 text-gray-600 dark:text-gray-400 mr-1" />
                         <span className="font-medium">{t('submitted_forms_count')}:</span> {game.submittedFormsCount?.toLocaleString('fa-IR') || 0}
                     </div>
                     {/* --- پایان جدید --- */}
                 </div>
 
                 <button
-                  className="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
+                  className="mt-5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-md hover:shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                   onClick={() => downloadExcel(game._id)}
                 >
                   <ArrowDownTrayIcon className="h-5 w-5 mr-2" /> {t('download_excel')}
@@ -151,7 +152,7 @@ function ExpiredGames() {
               <button
                 onClick={() => paginate(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150"
+                className="px-3 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 transition-colors duration-300"
               >
                 <ChevronLeftIcon className="h-5 w-5" />
               </button>
@@ -160,8 +161,10 @@ function ExpiredGames() {
                   key={number + 1}
                   onClick={() => paginate(number + 1)}
                   className={`px-4 py-2 rounded-md font-semibold ${
-                    currentPage === number + 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  } transition duration-150`}
+                    currentPage === number + 1 
+                      ? 'bg-blue-600 text-white dark:bg-blue-700 dark:text-white' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  } transition duration-150 transition-colors duration-300`}
                 >
                   {number + 1}
                 </button>
@@ -169,7 +172,7 @@ function ExpiredGames() {
               <button
                 onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150"
+                className="px-3 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition duration-150 transition-colors duration-300"
               >
                 <ChevronRightIcon className="h-5 w-5" />
               </button>

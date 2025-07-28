@@ -84,7 +84,7 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
       }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.errors && Array.isArray(err.response.data.errors)) {
-        setError(err.response.data.errors.map(e => e.message).join(', ')); // <-- اصلاح: نمایش فقط پیام خطا
+        setError(err.response.data.errors.map(e => e.msg || e.message).join(', ')); // اصلاح: نمایش فقط پیام خطا
       } else {
         setError(err.response?.data?.message || t('operation_error'));
       }
@@ -107,27 +107,24 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-3xl w-full max-w-md transform transition-all duration-300 hover:scale-[1.01] border-4 border-gray-200">
-        <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
+    // اعمال کلاس‌های تم به کانتینر اصلی
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-inter transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md transform transition-all duration-300 hover:scale-[1.01] border border-gray-200 dark:border-gray-700">
+        <h2 className="text-3xl font-extrabold text-center text-gray-800 dark:text-white mb-6">
           {isLogin ? t('user_login') : t('user_registration')}
         </h2>
 
         {/* پیام‌های موفقیت و خطا با آیکون */}
         {message && (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg mb-4 animate-fadeIn">
-            <div className="flex items-center">
-              <CheckCircleIcon className="h-6 w-6 text-green-500 mr-3" />
-              <p className="font-medium">{message}</p>
-            </div>
+          <div className="bg-green-100 dark:bg-green-900 border-l-4 border-green-500 dark:border-green-700 text-green-700 dark:text-green-200 p-4 rounded-lg mb-4 animate-fadeIn flex items-center">
+            <CheckCircleIcon className="h-6 w-6 text-green-500 dark:text-green-400 mr-3" />
+            <p className="font-medium">{message}</p>
           </div>
         )}
         {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg mb-4 animate-fadeIn">
-            <div className="flex items-center">
-              <ExclamationCircleIcon className="h-6 w-6 text-red-500 mr-3" />
-              <p className="font-medium">{error}</p>
-            </div>
+          <div className="bg-red-100 dark:bg-red-900 border-l-4 border-red-500 dark:border-red-700 text-red-700 dark:text-red-200 p-4 rounded-lg mb-4 animate-fadeIn flex items-center">
+            <ExclamationCircleIcon className="h-6 w-6 text-red-500 dark:text-red-400 mr-3" />
+            <p className="font-medium">{error}</p>
           </div>
         )}
 
@@ -135,17 +132,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
           {isLogin ? (
             // فیلد برای فرم لاگین (نام کاربری یا ایمیل)
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="usernameOrEmail">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="usernameOrEmail">
                 {t('username_or_email')}:
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
+                  <UserIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   id="usernameOrEmail"
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                  className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
                   required
@@ -156,17 +153,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
           ) : (
             // فیلد نام کاربری برای فرم ثبت نام
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="usernameRegister">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="usernameRegister">
                 {t('username')}:
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
+                  <UserIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="text"
                   id="usernameRegister"
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                  className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                   value={usernameRegister}
                   onChange={(e) => setUsernameRegister(e.target.value)}
                   required
@@ -180,17 +177,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
             <>
               {/* فیلد ایمیل برای فرم ثبت نام */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="emailRegister">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="emailRegister">
                   {t('email')}:
                 </label>
                 <div className="relative mt-1">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <EnvelopeIcon className="h-5 w-5 text-gray-400" />
+                    <EnvelopeIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="email"
                     id="emailRegister"
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                    className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                     value={emailRegister}
                     onChange={(e) => setEmailRegister(e.target.value)}
                     required
@@ -200,17 +197,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
               </div>
               {/* فیلد معرف (اختیاری) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="referrerUsername">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="referrerUsername">
                   {t('referrer_username')}:
                 </label>
                 <div className="relative mt-1">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <UserIcon className="h-5 w-5 text-gray-400" />
+                    <UserIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                   </div>
                   <input
                     type="text"
                     id="referrerUsername"
-                    className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                    className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                     value={referrerUsername}
                     onChange={(e) => setReferrerUsername(e.target.value)}
                     placeholder={t('referrer_username_placeholder')}
@@ -222,17 +219,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
 
           {/* فیلد رمز عبور */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="password">
               {t('password')}:
             </label>
             <div className="relative mt-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                <LockClosedIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
               </div>
               <input
                 type="password"
                 id="password"
-                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -244,17 +241,17 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
           {!isLogin && (
             // فیلد تکرار رمز عبور برای ثبت نام
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmPassword">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="confirmPassword">
                 {t('confirm_password')}:
               </label>
               <div className="relative mt-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockClosedIcon className="h-5 w-5 text-gray-400" />
+                  <LockClosedIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
                 </div>
                 <input
                   type="password"
                   id="confirmPassword"
-                  className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-3 pl-10 text-lg transition duration-200 ease-in-out"
+                  className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 p-3 pl-10 text-lg bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 transition duration-200 ease-in-out"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -291,7 +288,7 @@ function Auth({ onLoginSuccess, initialReferrerUsername }) {
               setIsLogin(!isLogin);
               resetFormFields(); // ریست کردن فیلدها هنگام تغییر تب
             }}
-            className="text-blue-600 hover:text-blue-800 transition duration-200 ease-in-out font-semibold text-lg"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition duration-200 ease-in-out font-semibold text-lg"
           >
             {isLogin ? t('no_account_yet') : t('already_have_account')}
           </button>

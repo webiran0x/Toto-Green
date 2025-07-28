@@ -21,7 +21,8 @@ const {
   getMyTransactions,
   requestWithdrawal,
   claimPrize,
-  getSingleCryptoDeposit
+  getSingleCryptoDeposit,
+  getReferredUsers
 } = userController;
 
 router.post('/register', registerUser);
@@ -41,5 +42,7 @@ router.post('/claim-prize/:gameId', protect, claimPrize);
 router.get('/crypto-deposits/:id', protect, getSingleCryptoDeposit);
 router.get('/games/expired', protect, getExpiredGames);
 router.get('/games/:gameId/download', protect, downloadGameExcel);
+router.get('/referred-users', protect, getReferredUsers); // دریافت لیست کاربران معرفی شده
+
 
 module.exports = router;

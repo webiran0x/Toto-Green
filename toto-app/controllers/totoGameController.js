@@ -226,19 +226,48 @@ const deleteTotoGame = asyncHandler(async (req, res) => {
     }
 });
 
-
-// @desc    دریافت آخرین بازی بسته‌شده یا کامل‌شده (closed یا completed)
-// @route   GET /api/totos/last-finished-game
+// @desc    دریافت بازی‌های تکمیل شده و بسته شده برای صفحه فرود (بدون نیاز به احراز هویت)
+// @route   GET /api/public/games/completed-and-closed
 // @access  Public
-const getLastFinishedTotoGame = asyncHandler(async (req, res) => {
-  const game = await TotoGame.findOne({ status: { $in: ['closed', 'completed'] } })
-    .sort({ deadline: -1 });
+const getPublicCompletedAndClosedGames = asyncHandler(async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 5; // تعداد بازی‌های مورد نیاز برای اسلایدر
 
-  if (!game) {
-    return res.status(404).json({ message: 'هیچ بازی بسته‌شده یا کامل‌شده‌ای یافت نشد.' });
-  }
+        // کوئری برای یافتن بازی‌هایی با وضعیت 'completed' یا 'closed'
+        const games = await TotoGame.find({
+            status: { $in: ['completed', 'closed'] }
+        })
+        .sort({ deadline: -1 }) // از جدیدترین به قدیمی‌ترین
+        .limit(limit)
+        .lean(); // برای کارایی بهتر
 
-  res.json(game);
+        // --- جدید: واکشی تعداد پیش‌بینی‌ها برای هر بازی (همانند getExpiredGames) ---
+        const gameIds = games.map(game => game._id);
+        const predictionCounts = await Prediction.aggregate([
+            { $match: { totoGame: { $in: gameIds } } },
+            { $group: { _id: '$totoGame', count: { $sum: 1 } } }
+        ]);
+
+        const predictionCountMap = new Map();
+        predictionCounts.forEach(item => {
+            predictionCountMap.set(item._id.toString(), item.count);
+        });
+
+        const gamesWithPredictionCounts = games.map(game => ({
+            ...game,
+            submittedFormsCount: predictionCountMap.get(game._id.toString()) || 0
+        }));
+        // --- پایان جدید ---
+
+        res.json({
+            games: gamesWithPredictionCounts,
+            totalCount: await TotoGame.countDocuments({ status: { $in: ['completed', 'closed'] } }) // تعداد کل برای اطلاع
+        });
+
+    } catch (error) {
+        logger.error(`Error fetching public completed and closed games: ${error.message}`);
+        res.status(500).json({ message: 'خطا در دریافت اطلاعات بازی‌ها.' });
+    }
 });
 
 // @desc    خروجی اکسل از فرم‌های پیش‌بینی کاربران
@@ -291,5 +320,5 @@ module.exports = {
     // setTotoGameResults, // این خط حذف شد
     exportFormsExcel,
     getTotoPredictionsExcel,
-    getLastFinishedTotoGame // اضافه شده
+    getPublicCompletedAndClosedGames // اضافه شده
 };

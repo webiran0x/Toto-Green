@@ -57,16 +57,53 @@ const getUserProfile = async (req, res) => {
     try {
         // req.user از authMiddleware می‌آید
         const user = await User.findById(req.user._id).select('-password'); // رمز عبور را انتخاب نکنید
-        if (user) {
-            res.status(200).json(user);
-        } else {
-            res.status(404).json({ message: 'کاربر یافت نشد.' });
+        if (!user) {
+            return res.status(404).json({ message: 'کاربر یافت نشد.' });
         }
+
+        // --- منطق جدید برای محاسبه تعداد فرم‌های برنده ---
+        let winningFormsCount = 0;
+        // پیدا کردن تمام پیش‌بینی‌های کاربر
+        const userPredictions = await Prediction.find({ user: user._id })
+                                                .populate('totoGame', 'status winners'); // populate برای دسترسی به وضعیت و برندگان بازی
+
+        userPredictions.forEach(prediction => {
+            const totoGame = prediction.totoGame;
+            // اطمینان حاصل می‌کنیم که totoGame وجود دارد و وضعیت آن 'completed' است
+            if (totoGame && totoGame.status === 'completed') {
+                // بررسی می‌کنیم که آیا کاربر در این بازی برنده شده است
+                // می‌توانید منطق برنده شدن را بر اساس نیاز خود تنظیم کنید (مثلاً اگر score > 0 باشد)
+                // یا با بررسی اینکه آیا user._id در لیست برندگان بازی (first, second, third) وجود دارد
+                if (prediction.score > 0 || // اگر امتیازی کسب کرده باشد (امتیاز 0 به معنای برنده نشدن است)
+                    (totoGame.winners && totoGame.winners.first && totoGame.winners.first.includes(user._id.toString())) ||
+                    (totoGame.winners && totoGame.winners.second && totoGame.winners.second.includes(user._id.toString())) ||
+                    (totoGame.winners && totoGame.winners.third && totoGame.winners.third.includes(user._id.toString()))
+                   ) {
+                    winningFormsCount++;
+                }
+            }
+        });
+        // --- پایان منطق جدید ---
+
+        res.status(200).json({
+            _id: user._id,
+            username: user.username,
+            email: user.email,
+            balance: user.balance,
+            score: user.score,
+            role: user.role,
+            level: user.level,
+            status: user.status,
+            phoneNumber: user.phoneNumber,
+            // ... سایر فیلدهای مورد نیاز
+            winningFormsCount: winningFormsCount, // <--- اضافه کردن تعداد فرم‌های برنده به پاسخ
+        });
     } catch (error) {
         logger.error(`Error fetching user profile for user ${req.user._id}: ${error.message}`);
         res.status(500).json({ message: 'خطای سرور.', error: error.message });
     }
 };
+
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
@@ -409,6 +446,43 @@ const submitPrediction = asyncHandler(async (req, res) => {
         const userPredictionsCount = await Prediction.countDocuments({ user: req.user._id });
         if (userPredictionsCount === 1 && user.referrer) {
             logger.info(`Referral commission for user ${req.user._id} to be awarded for game ${gameId}.`);
+          // --- منطق اعطای ریوارد رفرال (اضافه شده) ---
+            try {
+                const referrerUser = await User.findById(user.referrer);
+                const adminSettings = await AdminSettings.findOne(); // فرض می‌کنیم تنظیمات ادمین شامل درصد رفرال است
+
+                // بررسی وجود معرف و تنظیمات ادمین
+                if (referrerUser && adminSettings && adminSettings.referralCommissionPercentage !== undefined && adminSettings.referralCommissionPercentage > 0) {
+                    // محاسبه مبلغ کمیسیون رفرال
+                    const commissionAmount = (finalFormPrice * adminSettings.referralCommissionPercentage) / 100;
+
+                    if (commissionAmount > 0) {
+                        referrerUser.balance += commissionAmount;
+                        await referrerUser.save();
+
+                        // ثبت تراکنش برای کمیسیون رفرال
+                        await Transaction.create({
+                            user: referrerUser._id,
+                            amount: commissionAmount,
+                            type: 'referral_commission',
+                            method: 'system',
+                            description: `کمیسیون رفرال برای معرفی کاربر ${user.username} در بازی ${totoGame.name}`,
+                            relatedEntity: user._id, // شناسه کاربری که معرفی شده است
+                            relatedEntityType: 'User',
+                            status: 'completed'
+                        });
+                        logger.info(`Referral commission of ${commissionAmount} USDT awarded to referrer ${referrerUser.username} (ID: ${referrerUser._id}) for user ${user.username} (ID: ${user._id}).`);
+                    } else {
+                        logger.warn(`Referral commission amount for user ${user._id} to referrer ${user.referrer} was zero or negative.`);
+                    }
+                } else {
+                    logger.info(`Referral commission not awarded for user ${user._id}: Referrer not found or referral percentage not set/zero.`);
+                }
+            } catch (referralError) {
+                logger.error(`Error awarding referral commission for user ${user._id} to referrer ${user.referrer}: ${referralError.message}`);
+                // این خطا نباید مانع از ثبت پیش‌بینی اصلی شود. فقط لاگ می‌شود.
+            }
+            // --- پایان منطق اعطای ریوارد رفرال ---
         }
 
         logger.info(`User ${req.user.username} (ID: ${req.user._id}) submitted prediction for Toto Game ${totoGame.name} (ID: ${gameId}) with Form ID: ${formId}.`);
@@ -557,7 +631,7 @@ const getMyTransactions = asyncHandler(async (req, res) => {
         
         // پارامترهای صفحه‌بندی
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 5;
         const skip = (page - 1) * limit;
 
         // پارامترهای فیلتر
@@ -766,6 +840,29 @@ const getExpiredGames = asyncHandler(async (req, res) => {
     }
 });
 
+// --- اضافه شده: دریافت کاربران معرفی شده توسط کاربر فعلی ---
+// @desc    دریافت کاربران معرفی شده توسط کاربر فعلی
+// @route   GET /api/users/referred-users
+// @access  Private (User)
+const getReferredUsers = asyncHandler(async (req, res) => {
+    try {
+        const referrerId = req.user._id; // شناسه کاربر فعلی به عنوان معرف
+
+        // واکشی کاربرانی که فیلد 'referrer' آنها برابر با شناسه کاربر فعلی است
+        const referredUsers = await User.find({ referrer: referrerId })
+            .select('username email createdAt') // فیلدهای مورد نیاز را انتخاب کنید
+            .sort({ createdAt: -1 }); // مرتب‌سازی بر اساس تاریخ ثبت‌نام
+
+        logger.info(`User ${req.user.username} (ID: ${referrerId}) fetched ${referredUsers.length} referred users.`);
+        res.json(referredUsers);
+
+    } catch (error) {
+        logger.error(`Error fetching referred users for user ${req.user._id}: ${error.message}`);
+        res.status(500).json({ message: 'خطا در دریافت لیست کاربران معرفی شده.', error: error.message });
+    }
+});
+// --- پایان بخش اضافه شده ---
+
 
 // اکسپورت تمام توابع کنترلر
 console.log('USERCONTROLLER.JS: Exporting functions. Type of deposit:', typeof deposit);
@@ -781,7 +878,7 @@ module.exports = {
     claimPrize,
     getSingleCryptoDeposit,
     getExpiredGames,
-    downloadUserGameData
-
+    downloadUserGameData,
+    getReferredUsers
 };
 console.log('USERCONTROLLER.JS: Finished userController loading.');

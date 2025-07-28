@@ -15,9 +15,9 @@ import MyTransactions from './components/MyTransactions';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import CreateTicket from './components/CreateTicket';
 import MyTickets from './components/MyTickets';
-import ExpiredGames from './components/ExpiredGames'; // <--- مطمئن شوید که این ایمپورت وجود دارد
-
-// --- شروع تغییرات مهم ---
+import ExpiredGames from './components/ExpiredGames';
+import Footer from './components/Footer'; // ایمپورت کامپوننت فوتر
+import FAQ from './components/FAQ'; // ایمپورت کامپوننت FAQ
 
 // آدرس پایه API رو اینجا برای Axios به صورت سراسری تنظیم می‌کنیم.
 // این باعث میشه نیازی به تکرار 'https://lotto.green/api' در هر درخواست نباشه.
@@ -30,10 +30,8 @@ axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL || 'https://lotto.gr
 // با توجه به اینکه بک‌اند شما از HttpOnly cookie استفاده می‌کنه، این تنظیم لازمه.
 axios.defaults.withCredentials = true;
 
-// --- پایان تغییرات مهم ---
-
 // کامپوننت Wrapper برای Auth تا به useLocation دسترسی داشته باشد
-const AuthWrapper = ({ onLoginSuccess }) => { // API_BASE_URL از پراپس حذف شد
+const AuthWrapper = ({ onLoginSuccess }) => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const referrerUsername = queryParams.get('ref');
@@ -47,22 +45,39 @@ const AuthWrapper = ({ onLoginSuccess }) => { // API_BASE_URL از پراپس ح
     }
   }, [referrerUsername, location.search]);
 
-  // API_BASE_URL از پراپس حذف شد
   return <Auth onLoginSuccess={onLoginSuccess} initialReferrerUsername={referrerUsername} />;
 };
 
 
 // کامپوننت ریشه با LanguageProvider
 function RootApp() {
-  // --- تغییر: token و localStorage حذف شدند ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true);
   const { t } = useLanguage();
 
-  // --- تغییر: API_BASE_URL به صورت سراسری در axios.defaults تنظیم شده و اینجا حذف شد ---
+  // 1. وضعیت تم: ابتدا از localStorage بخوانید، در غیر این صورت 'light'
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme || 'light';
+  });
+
+  // 2. useEffect برای اعمال کلاس 'dark' به <html> و ذخیره در localStorage
+  useEffect(() => {
+    const root = document.documentElement; // عنصر <html>
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // 3. تابع برای تغییر تم
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   // بررسی وضعیت احراز هویت هنگام بارگذاری اپلیکیشن
-  // --- تغییر: منطق verifyAuth برای استفاده از کوکی‌ها اصلاح شد ---
   useEffect(() => {
     const verifyAuth = async () => {
       try {
@@ -87,12 +102,10 @@ function RootApp() {
     verifyAuth();
   }, []); // فقط یک بار هنگام mount شدن کامپوننت اجرا می‌شود
 
-  // --- تغییر: handleLoginSuccess دیگر توکن را دریافت یا در localStorage ذخیره نمی‌کند ---
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
   };
 
-  // --- تغییر: handleLogout کوکی را از سمت سرور پاک می‌کند ---
   const handleLogout = async () => {
     try {
       await axios.post('/auth/logout'); // درخواست به بک‌اند برای پاک کردن کوکی HttpOnly
@@ -103,31 +116,42 @@ function RootApp() {
   };
 
   if (loadingAuth) {
-    return <div className="flex items-center justify-center min-h-screen bg-gray-100">{t('loading')}</div>;
+    // 4. استایل‌دهی اولیه برای تم در صفحه بارگذاری
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+        <p>{t('loading')}</p>
+      </div>
+    );
   }
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100 flex flex-col">
-        <Header isAuthenticated={isAuthenticated} onLogout={handleLogout} />
-        <main className="flex-grow container mx-auto p-4">
+      {/* 5. ارسال وضعیت تم و تابع تغییر تم به Header */}
+      <div className="App bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300"> {/* flex-col برای چیدمان عمودی */}
+        <Header
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
+          currentTheme={theme} // تم فعلی
+          toggleTheme={toggleTheme} // تابع تغییر تم
+        />
+        <main className="flex-grow container mx-auto p-4"> {/* flex-grow برای پر کردن فضای باقی‌مانده */}
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            {/* --- تغییر: API_BASE_URL از پراپس AuthWrapper حذف شد --- */}
             <Route path="/auth" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthWrapper onLoginSuccess={handleLoginSuccess} />} />
-            {/* --- تغییر: token و API_BASE_URL از پراپس کامپوننت‌ها حذف شدند --- */}
             <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" replace />} />
             <Route path="/games" element={isAuthenticated ? <OpenTotoGames /> : <Navigate to="/auth" replace />} />
             <Route path="/my-predictions" element={isAuthenticated ? <MyPredictions /> : <Navigate to="/auth" replace />} />
-            <Route path="/deposit" element={isAuthenticated ? <Deposit /> : <Navigate to="/auth" replace />} />
+            <Route path="/deposit" element={isAuthenticated ? <Deposit currentTheme={theme} /> : <Navigate to="/auth" replace />} /> {/* <--- currentTheme به Deposit ارسال شد */}
             <Route path="/my-transactions" element={isAuthenticated ? <MyTransactions /> : <Navigate to="/auth" replace />} />
             <Route path="/withdraw" element={isAuthenticated ? <Withdraw /> : <Navigate to="/auth" replace />} />
             <Route path="/support/create" element={isAuthenticated ? <CreateTicket /> : <Navigate to="/auth" replace />} />
             <Route path="/support/my-tickets" element={isAuthenticated ? <MyTickets /> : <Navigate to="/auth" replace />} />
-            <Route path="/expired-games" element={<ExpiredGames />} /> {/* <--- این خط جدید را اضافه کنید */}
-            <Route path="*" element={<h2 className="text-center text-red-500 text-3xl font-bold mt-20">{t('page_not_found')}</h2>} />
+            <Route path="/expired-games" element={isAuthenticated ? <ExpiredGames /> : <Navigate to="/auth" replace />} />
+            <Route path="/faq" element={<FAQ />} /> {/* مسیر جدید برای FAQ */}
+            <Route path="*" element={<h2 className="text-center text-red-500 dark:text-red-300 text-3xl font-bold mt-20">{t('page_not_found')}</h2>} />
           </Routes>
         </main>
+        <Footer /> {/* اضافه کردن کامپوننت فوتر */}
       </div>
     </Router>
   );

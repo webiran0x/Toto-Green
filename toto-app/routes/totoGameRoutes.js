@@ -12,6 +12,7 @@ const {
     getAllTotoGames,
     getOpenTotoGames,
     getTotoGameById,
+    getPublicCompletedAndClosedGames, // ایمپورت تابع جدید
     getTotoPredictionsExcel
 } = require('../controllers/totoGameController');
 
@@ -75,6 +76,19 @@ router.get('/last-finished-game', async (req, res) => {
     }
 });
 
+// @desc    دریافت بازی‌های تکمیل شده و بسته شده برای صفحه فرود (بدون نیاز به احراز هویت)
+// @route   GET /api/public/games/completed-and-closed
+// @access  Public
+// !!! مهم: این مسیر باید قبل از مسیر عمومی /:id تعریف شود تا اولویت داشته باشد.
+router.get('/public/games/completed-and-closed', getPublicCompletedAndClosedGames);
+
+// !!! مسیر جدید برای دانلود اکسل پیش‌بینی‌ها بدون احراز هویت !!!
+// @desc    خروجی اکسل از پیش‌بینی‌های یک بازی Toto با شناسه مشخص (فایل اکسل) - عمومی
+// @route   GET /api/totos/public/games/:gameId/predictions-download
+// @access  Public
+router.get('/public/games/:gameId/predictions-download', getTotoPredictionsExcel);
+
+
 // --- مسیرهای خصوصی (Private Routes) - نیاز به احراز هویت ---
 
 // @desc    ارسال فرم پیش‌بینی توسط کاربر
@@ -92,7 +106,7 @@ router.get('/:id/predictions-excel', protect, getTotoPredictionsExcel);
 // @desc    دریافت جزئیات یک بازی Toto با شناسه
 // @route   GET /api/totos/:id
 // @access  Public
-// ✅ این مسیر عمومی باید آخرین مسیر از نوع GET در این فایل باشد
+// ✅ این مسیر عمومی باید آخرین مسیر از نوع GET در این فایل باشد تا مسیرهای خاص‌تر اولویت داشته باشند.
 router.get('/:id', getTotoGameById);
 
 

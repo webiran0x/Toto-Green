@@ -10,6 +10,14 @@ const adminSettingsSchema = mongoose.Schema({
         type: Number,
         default: 0,
     },
+    // --- اضافه شده: درصد کمیسیون رفرال ---
+    referralCommissionPercentage: {
+        type: Number,
+        default: 0, // پیش‌فرض 0 به معنی عدم پرداخت کمیسیون است
+        min: 0,      // حداقل مقدار 0
+        max: 100     // حداکثر مقدار 100 (درصد)
+    },
+    // --- پایان بخش اضافه شده ---
     // Add other settings here, e.g.,
     // gameCreationFee: {
     //     type: Number,
