@@ -2,3 +2,4 @@
 # totohigh
 # totopars
 # totosafe
+# totoparsi
