@@ -5,8 +5,9 @@ const mongoose = require('mongoose');
 const TotoGame = require('../models/TotoGame');
 const { setCache, getCache } = require('../utils/cache');
 const logger = require('../utils/logger');
-const { protect } = require('../middleware/authMiddleware'); // اطمینان از استفاده از authMiddleware صحیح
-
+const { protect } = require('../middleware/authMiddleware'); // اطمینان از استفاده از authMiddleware 
+// صحیح
+const totoGameController = require('../controllers/totoGameController');
 // Import Toto Game related controllers
 const {
     getAllTotoGames,
@@ -54,6 +55,14 @@ router.get('/open', async (req, res) => {
     }
 });
 
+// مسیر برای دریافت بازی‌های منقضی شده عمومی (بدون نیاز به احراز هویت)
+router.get('/public-expired', totoGameController.getPublicExpiredGames); // مطمئن شوید فقط اینجاست
+
+
+// NEW: مسیر برای دریافت بازی‌های منقضی شده عمومی (بدون نیاز به احراز هویت)
+// این مسیر جدید را به فایل totoGameRoutes.js اضافه کنید
+router.get('/public-expired', totoGameController.getPublicExpiredGames);
+
 // @desc    دریافت آخرین بازی بسته‌شده یا کامل‌شده (closed یا completed)
 // @route   GET /api/totos/last-finished-game
 // @access  Public
@@ -87,6 +96,7 @@ router.get('/public/games/completed-and-closed', getPublicCompletedAndClosedGame
 // @route   GET /api/totos/public/games/:gameId/predictions-download
 // @access  Public
 router.get('/public/games/:gameId/predictions-download', getTotoPredictionsExcel);
+router.get('/public-download/:gameId', totoGameController.getTotoPredictionsExcel);
 
 
 // --- مسیرهای خصوصی (Private Routes) - نیاز به احراز هویت ---

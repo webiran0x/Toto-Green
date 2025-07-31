@@ -270,6 +270,99 @@ const getPublicCompletedAndClosedGames = asyncHandler(async (req, res) => {
     }
 });
 
+// // NEW: متد جدید برای دریافت بازی‌های منقضی شده عمومی (بدون نیاز به احراز هویت)
+// const getPublicExpiredGames = async (req, res, next) => {
+//         try {
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = parseInt(req.query.limit) || 10;
+//         const skip = (page - 1) * limit;
+
+//         // فقط بازی‌هایی را که وضعیت 'completed' یا 'closed' یا 'cancelled' دارند، واکشی می‌کنیم
+//         const query = { status: { $in: ['completed', 'closed', 'cancelled'] } };
+
+//         const games = await TotoGame.find(query)
+//             .sort({ deadline: -1 }) // بر اساس مهلت به صورت نزولی (جدیدترین به قدیمی‌ترین)
+//             .skip(skip)
+//             .limit(limit)
+//             .select('-matches'); // اطلاعات مسابقات را برای API عمومی ارسال نمی‌کنیم تا پاسخ سبک‌تر باشد
+
+//         const totalCount = await TotoGame.countDocuments(query);
+//         const totalPages = Math.ceil(totalCount / limit);
+
+//         res.json({
+//             games,
+//             totalCount,
+//             totalPages,
+//             currentPage: page,
+//         });
+//     } catch (error) {
+//         next(error);
+//     }
+// };
+
+
+// @desc    دریافت بازی‌های منقضی شده عمومی (بدون نیاز به احراز هویت)
+// @route   GET /api/totos/public-expired
+// @access  Public
+const getPublicExpiredGames = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const query = { status: { $in: ['completed', 'closed', 'cancelled'] } };
+
+        // NEW: انتخاب فیلدها به صورت پویا بر اساس وضعیت بازی
+        // برای بازی‌های completed، فیلد matches را نیز برمی‌گردانیم
+        const games = await TotoGame.find(query)
+            .sort({ deadline: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(); // از lean() استفاده می‌کنیم برای کارایی بهتر
+
+        // NEW: افزودن تعداد فرم‌های برنده و نتایج بازی‌ها برای بازی‌های تکمیل‌شده
+        const gameIds = games.map(game => game._id);
+        const predictionCounts = await Prediction.aggregate([
+            { $match: { totoGame: { $in: gameIds } } },
+            { $group: { _id: '$totoGame', count: { $sum: 1 } } }
+        ]);
+
+        const predictionCountMap = new Map();
+        predictionCounts.forEach(item => {
+            predictionCountMap.set(item._id.toString(), item.count);
+        });
+
+        const gamesWithDetails = games.map(game => {
+            const gameObj = {
+                ...game,
+                submittedFormsCount: predictionCountMap.get(game._id.toString()) || 0
+            };
+            // اگر بازی تکمیل شده است، فیلد matches را نگه می‌داریم
+            if (game.status === 'completed') {
+                // نیازی به حذف matches نیست، چون در .lean() کل شیء برگردانده می‌شود.
+                // اگر می‌خواهید مطمئن شوید که matches فقط برای 'completed' هست، این منطق را اینجا اضافه کنید:
+                // در غیر این صورت، این بخش نیازی به تغییر ندارد.
+            } else {
+                // برای بازی‌های غیر از 'completed'، فیلد matches را حذف می‌کنیم
+                delete gameObj.matches;
+            }
+            return gameObj;
+        });
+
+        const totalCount = await TotoGame.countDocuments(query);
+        const totalPages = Math.ceil(totalCount / limit);
+
+        res.json({
+            games: gamesWithDetails, // ارسال بازی‌ها با جزئیات بیشتر
+            totalCount,
+            totalPages,
+            currentPage: page,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // @desc    خروجی اکسل از فرم‌های پیش‌بینی کاربران
 // @route   GET /api/admin/totos/:gameId/forms/export
 // @access  Private/Admin
@@ -319,6 +412,7 @@ module.exports = {
     deleteTotoGame,
     // setTotoGameResults, // این خط حذف شد
     exportFormsExcel,
+    getPublicExpiredGames,
     getTotoPredictionsExcel,
     getPublicCompletedAndClosedGames // اضافه شده
 };

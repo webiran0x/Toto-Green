@@ -9,7 +9,8 @@ function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-gray-300 py-6 mt-8 shadow-inner transition-colors duration-300">
+    // OLD: bg-gray-200 dark:bg-gray-900 text-gray-700 dark:text-gray-300
+    <footer className="bg-clr-surface-a20 dark:bg-clr-surface-a0 text-clr-dark-a0 dark:text-clr-light-a0 py-6 mt-8 shadow-inner transition-colors duration-300"> {/* NEW */}
       <div className="container mx-auto px-4 text-center">
         <p className="text-sm">
           &copy; {currentYear} {t('app_name')}. {t('all_rights_reserved')}.
@@ -20,7 +21,8 @@ function Footer() {
             href="https://yourwebsite.com" // آدرس وب‌سایت شما
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 transition-colors duration-200"
+            // OLD: text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200
+            className="text-clr-primary-a0 hover:text-clr-primary-a10 transition-colors duration-200" 
           >
             Your Company Name
           </a>

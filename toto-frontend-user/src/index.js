@@ -25,8 +25,8 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: [
-      'Roboto', // فونت پیش‌فرض Material-UI
-      'IRANSans', // فونت فارسی شما (اطمینان حاصل کنید که این فونت در CSS یا index.html لود شده باشد)
+      'IRANYekanXVF', // فونت پیش‌فرض Material-UI
+      'Roboto', // فونت فارسی شما (اطمینان حاصل کنید که این فونت در CSS یا index.html لود شده باشد)
       'Arial',
       'sans-serif',
     ].join(','),
